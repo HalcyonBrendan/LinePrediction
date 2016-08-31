@@ -27,6 +27,14 @@ class BettingDB():
             print "{}_lines does not exist".format(line[sport])
             self.create_moneyline_table(line["sport"])
 
+        print "Ensuring proper format"
+
+        # Make sure all odds are in decimal form (not American)
+        if abs(line["home_line"]) > 99:
+            line["home_line"] = convert_odds(line["home_line"],"american","decimal")
+        if abs(line["away_line"]) > 99:
+            line["away_line"] = convert_odds(line["away_line"],"american","decimal")
+
         print "Adding moneyline"
 
         line["id"] = self.get_game_id(line)
@@ -193,3 +201,21 @@ VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\')""".format(new_id,game["home_team"],
 
     def shutdown(self):
         self.db.disconnect()
+
+# Converts odds from currentType to desiredType (can be "american" or "decimal")
+def convert_odds(odds, currentType, desiredType):
+
+    if currentType == "american":
+        if odds > 0:
+            convertedOdds = 1+odds/100.
+        else:
+            convertedOdds = 1-100./odds
+    elif currentType == "decimal":
+        if odds >= 2:
+            convertedOdds = (odds-1)*100.
+        else:
+            convertedOdds = 100./(1-odds)
+
+    return convertedOdds
+
+

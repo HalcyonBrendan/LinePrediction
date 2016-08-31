@@ -254,7 +254,7 @@ class FiveDimes():
                     home_line = int(re.split(' ',str(elements[4].getText().replace(u'\xa0', u'')))[0])
 
                     #poll_time = "{}".format(str(datetime.now().time()))
-                    poll_time = strftime("%H %M %S")
+                    poll_time = strftime("%H%M%S")
 
                     moneylines.append(
                         {
@@ -379,11 +379,11 @@ class Pinnacle():
                     if teamCounter % 2 == 1:
                         away_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
                         day = cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip()
-                        away_line = cell.find("span", {"id": re.compile("divM*")}).string
+                        away_line = float(cell.find("span", {"id": re.compile("divM*")}).string)
                     else:
                         home_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
                         start = cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip()
-                        home_line = cell.find("span", {"id": re.compile("divM*")}).string
+                        home_line = float(cell.find("span", {"id": re.compile("divM*")}).string)
 
                         game_time = {"day": day, "time": start}
                         poll_time = strftime("%H%M%S")

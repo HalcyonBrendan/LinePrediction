@@ -53,7 +53,6 @@ class OddsComparer():
                     using mysql
                     """
 
-                    #game["poll_time"] = int(time.time())
                     game["site"] = site
 
                     game_id = self.bets_DB.get_game_id(game)
