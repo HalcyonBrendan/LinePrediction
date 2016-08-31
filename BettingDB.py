@@ -46,7 +46,7 @@ class BettingDB():
 
     def create_moneyline_table(self,sport):
         query_string = """CREATE TABLE {}_lines (poll_time TEXT, id INT, site TEXT, 
-home_team TEXT, home_line DOUBLE, away_team TEXT, away_line DOUBLE)""".format(sport)
+home_team TEXT, home_line DOUBLE(4,3), away_team TEXT, away_line DOUBLE(4,3))""".format(sport)
         # print query_string
         self.execute_command(query_string)
 
