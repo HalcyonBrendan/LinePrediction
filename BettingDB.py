@@ -39,14 +39,14 @@ class BettingDB():
 
         line["id"] = self.get_game_id(line)
 
-        query_string = """INSERT INTO {7}_lines (poll_time, id, site, home_team, home_line, away_team, away_line)
-    VALUES ({0},{1},\'{2}\',\'{3}\',{4},\'{5}\',{6})""".format(line["poll_time"], line["id"], line["site"],line["home_team"],
-    line["home_line"], line["away_team"], line["away_line"], line["sport"])
+        query_string = """INSERT INTO {8}_lines (poll_time, id, game_time, home_team, home_line, away_team, away_line, site)
+    VALUES ({0},{1},{2},\'{3}\',{4},\'{5}\',{6},\'{7}\')""".format(line["poll_time"], line["id"], line["game_time"], line["home_team"],
+    line["home_line"], line["away_team"], line["away_line"],line["site"],line["sport"])
         self.execute_command(query_string)
 
     def create_moneyline_table(self,sport):
-        query_string = """CREATE TABLE {}_lines (poll_time TEXT, id INT, site TEXT, 
-home_team TEXT, home_line DOUBLE(4,3), away_team TEXT, away_line DOUBLE(4,3))""".format(sport)
+        query_string = """CREATE TABLE {}_lines (poll_time INT, id INT, game_time INT,
+home_team TEXT, home_line DOUBLE(4,3), away_team TEXT, away_line DOUBLE(4,3), site TEXT)""".format(sport)
         # print query_string
         self.execute_command(query_string)
 
@@ -69,7 +69,7 @@ home_team TEXT, home_line DOUBLE(4,3), away_team TEXT, away_line DOUBLE(4,3))"""
             return False
 
     def create_ids_table(self):
-        query_string = """CREATE TABLE game_ids (id INT, day TEXT, time TEXT, home_team TEXT, away_team TEXT, sport TEXT)"""
+        query_string = """CREATE TABLE game_ids (id INT, game_time TEXT, home_team TEXT, away_team TEXT, sport TEXT)"""
         # print query_string
         self.execute_command(query_string)
 
@@ -107,10 +107,9 @@ home_team TEXT, home_line DOUBLE(4,3), away_team TEXT, away_line DOUBLE(4,3))"""
         query_string = """SELECT id FROM game_ids 
             WHERE home_team = \'{0}\' 
             AND away_team = \'{1}\'
-            AND day = \'{2}\'
-            AND time = \'{3}\'
-            AND sport = \'{4}\'""".format(game["home_team"],
-            game["away_team"],game["game_time"]["day"],game["game_time"]["time"] , game["sport"])
+            AND game_time = \'{2}\'
+            AND sport = \'{3}\'""".format(game["home_team"],
+            game["away_team"],game["game_time"], game["sport"])
 
         # print "{}".format(query_string)
         self.cursor.execute(query_string)
@@ -137,10 +136,9 @@ home_team TEXT, home_line DOUBLE(4,3), away_team TEXT, away_line DOUBLE(4,3))"""
         query_string = """SELECT id FROM game_ids 
             WHERE home_team = \'{0}\' 
             AND away_team = \'{1}\'
-            AND day = \'{2}\'
-            AND time = \'{3}\'
-            AND sport = \'{4}\'""".format(game["home_team"],
-            game["away_team"],game["game_time"]["day"],game["game_time"]["time"] , game["sport"])
+            AND game_time = \'{2}\'
+            AND sport = \'{3}\'""".format(game["home_team"],
+            game["away_team"],game["game_time"], game["sport"])
             
         self.cursor.execute(query_string)
         try:
@@ -175,9 +173,9 @@ home_team TEXT, home_line DOUBLE(4,3), away_team TEXT, away_line DOUBLE(4,3))"""
         else:
             new_id = 1
         
-        query_string = """INSERT INTO game_ids (id,home_team,away_team,sport,day)
+        query_string = """INSERT INTO game_ids (id,home_team,away_team,sport,game_time)
 VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\')""".format(new_id,game["home_team"],game["away_team"],
-            game["sport"],game["game_time"]["day"])
+            game["sport"],game["game_time"])
 
         self.cursor.execute(query_string)
 

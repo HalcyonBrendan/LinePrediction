@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from pyvirtualdisplay import Display
 from datetime import datetime
 import time, json, re, math, string
-from time import strftime
+
 
 def print_json(json_object):
     print json.dumps(json_object, indent=4, sort_keys=True) 
@@ -50,11 +50,9 @@ class bodog():
                 away_team = self.translate_name(teams[0].getText(), sport)
                 home_team = self.translate_name(teams[1].getText(), sport)
 
-                day, time = re.split(' ',str(cell.findAll("time")[0].getText()))
-                time = time.replace('.',':')
+                day, gtime = re.split(' ',str(cell.findAll("time")[0].getText()))
 
-                game_time = {"day": day, "time": time}
-
+                game_time = self.translate_datetime(day.strip(), gtime.strip())
                 moneyline_cells = cell.findAll('ul', {'class': "ng-isolate-scope"})[1]
                 lines = moneyline_cells.findAll('span', {'class': 'ng-binding'})
 
@@ -76,7 +74,7 @@ class bodog():
                 else:
                     home_line = int(home_line_string)
 
-                poll_time = strftime("%H%M%S")
+                poll_time = int(time.time())
 
                 moneylines.append(
                     {
@@ -116,6 +114,34 @@ class bodog():
                 return short_form
 
         return long_form
+
+    # given day of the week and time of game, returns datetime in seconds fromtimestamp
+    def translate_datetime(self, day, game_time):
+        # get numeric value of game day and current day
+        game_day = get_day_number(day)
+        curr_day = int(time.strftime("%w"))
+        # compute how many days in future the game is
+        day_diff = (game_day-curr_day)%7
+        # convert time to minute of day
+        game_day_secs = self.time_to_sec(game_time)
+        curr_day_secs = get_time_in_seconds()
+        # compute how many seconds until the game
+        seconds_til_game = 24*60*60*day_diff + game_day_secs-curr_day_secs
+        # compute gametime in seconds fromtimestamp (with a bit of rounding)
+        gametime_in_seconds = int(round((time.time()+seconds_til_game)/10)*10)
+        return gametime_in_seconds
+
+    def time_to_sec(self, game_time):
+        
+        parsed_time = game_time.split(":")
+        ten_mins = int(parsed_time[1][0])
+        one_mins = int(parsed_time[1][1])
+        minutes = 10*ten_mins + one_mins
+        am_pm = parsed_time[1][2]
+        # bodog gives ET, so convert to PT
+        hour = ((int(parsed_time[0])+12*(am_pm=="p"))-3)%24
+        time_in_mins = 60*hour + minutes
+        return 60*time_in_mins
 
     def class_print(self, string):
         print "{0}: {1}".format(self.name, string)
@@ -209,11 +235,8 @@ class FiveDimes():
                     lines_for_this_game = {}
 
                     elements = away_cells[i].findAll('td')
-
-                    game_time = {
-                        "day": str(re.split(" ",elements[0].getText())[0]).upper(),
-                        "time": ""
-                    }
+                    
+                    day = str(re.split(" ",elements[0].getText())[0]).upper()
 
                     away_list = re.split("\W+",elements[2].getText().replace(u'\xa0', u' '))[1:]
                     away_string = []
@@ -234,8 +257,8 @@ class FiveDimes():
 
                     elements = home_cells[i].findAll('td')
 
-                    game_time["time"] = str(re.split(" ",elements[0].getText())[0]).lower()
-
+                    gtime = str(re.split(" ",elements[0].getText())[0]).lower()
+                    game_time = self.translate_datetime(day.strip(), gtime.strip())
                     home_list = re.split("\W+",elements[2].getText().replace(u'\xa0', u' '))[1:]
                     home_string = []
                     home_string.append(str(home_list[0]))
@@ -253,8 +276,7 @@ class FiveDimes():
 
                     home_line = int(re.split(' ',str(elements[4].getText().replace(u'\xa0', u'')))[0])
 
-                    #poll_time = "{}".format(str(datetime.now().time()))
-                    poll_time = strftime("%H%M%S")
+                    poll_time = int(time.time())
 
                     moneylines.append(
                         {
@@ -268,7 +290,7 @@ class FiveDimes():
                         }
                     )
                     
-                    self.class_print("finished parsing {0} v {1}".format(home_team, away_team))
+                    #self.class_print("finished parsing {0} v {1}".format(home_team, away_team))
             else:
                 self.class_print("{} not yet available".format(sport))
 
@@ -301,6 +323,34 @@ class FiveDimes():
                 return short_form
 
         return long_form
+
+    # given day of the week and time of game, returns datetime in seconds fromtimestamp
+    def translate_datetime(self, day, game_time):
+        # get numeric value of game day and current day
+        game_day = get_day_number(day)
+        curr_day = int(time.strftime("%w"))
+        # compute how many days in future the game is
+        day_diff = (game_day-curr_day)%7
+        # convert time to minute of day
+        game_day_secs = self.time_to_sec(game_time)
+        curr_day_secs = get_time_in_seconds()
+        # compute how many seconds until the game
+        seconds_til_game = 24*60*60*day_diff + game_day_secs-curr_day_secs
+        # compute gametime in seconds fromtimestamp (with a bit of rounding)
+        gametime_in_seconds = int(round((time.time()+seconds_til_game)/10)*10)
+        return gametime_in_seconds
+
+    def time_to_sec(self, game_time):
+        
+        parsed_time = game_time.split(":")
+        ten_mins = int(parsed_time[1][0])
+        one_mins = int(parsed_time[1][1])
+        minutes = 10*ten_mins + one_mins
+        am_pm = parsed_time[1][2]
+        # bodog gives ET, so convert to PT
+        hour = ((int(parsed_time[0])+12*(am_pm=="p"))-3)%24
+        time_in_mins = 60*hour + minutes
+        return 60*time_in_mins
 
     def class_print(self, string):
         print "{0}: {1}".format(self.name, string)
@@ -378,15 +428,19 @@ class Pinnacle():
                     teamCounter += 1
                     if teamCounter % 2 == 1:
                         away_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
-                        day = cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip()
+                        away_team = self.translate_name(self.strip_unwanted_text(away_team),sport)
+                        day_info = cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip()
                         away_line = float(cell.find("span", {"id": re.compile("divM*")}).string)
+                        d_info = day_info.split(" ")
+                        day = str(d_info[0])
                     else:
                         home_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
-                        start = cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip()
+                        home_team = self.translate_name(self.strip_unwanted_text(home_team),sport)
+                        gtime = str(cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip())
                         home_line = float(cell.find("span", {"id": re.compile("divM*")}).string)
 
-                        game_time = {"day": day, "time": start}
-                        poll_time = strftime("%H%M%S")
+                        game_time = self.translate_datetime(day.strip(), gtime.strip())
+                        poll_time = int(time.time())
                         
                         moneylines.append(
                             {
@@ -399,10 +453,10 @@ class Pinnacle():
                                 "sport":sport
                             }
                         )
-                try:
-                    self.logout()
-                except:
-                    pass
+        try:
+            self.logout()
+        except:
+            pass
 
         return {"site": self.name, "moneylines": moneylines}
 
@@ -431,6 +485,34 @@ class Pinnacle():
     def time_zone_change(self, my_time):
         float_time = float(my_time) + 3
         return float_time
+
+    # given day of the week and time of game, returns datetime in seconds fromtimestamp
+    def translate_datetime(self, day, game_time):
+        # get numeric value of game day and current day
+        game_day = get_day_number(day)
+        curr_day = int(time.strftime("%w"))
+        # compute how many days in future the game is
+        day_diff = (game_day-curr_day)%7
+        # convert time to minute of day
+        game_day_secs = self.time_to_sec(game_time)
+        curr_day_secs = get_time_in_seconds()
+        # compute how many seconds until the game
+        seconds_til_game = 24*60*60*day_diff + game_day_secs-curr_day_secs
+        # compute gametime in seconds fromtimestamp (with a bit of rounding)
+        gametime_in_seconds = int(round((time.time()+seconds_til_game)/10)*10)
+        return gametime_in_seconds
+
+    def time_to_sec(self, game_time):
+        
+        parsed_time = game_time.split(":")
+        ten_mins = int(parsed_time[1][0])
+        one_mins = int(parsed_time[1][1])
+        minutes = 10*ten_mins + one_mins
+        am_pm = parsed_time[1][3]
+        # bodog gives ET, so convert to PT
+        hour = (int(parsed_time[0])+12*(am_pm=="P"))
+        time_in_mins = 60*hour + minutes
+        return 60*time_in_mins
 
         # if float_time >= 13:
         #     float_time -= 12
@@ -572,8 +654,31 @@ class Pinnacle():
         print "{0}: {1}".format(self.name, string)
 '''
 
+def get_day_number(day):
 
+    if day in config["day_translations"]["sunday"]:
+        return 0
+    elif day in config["day_translations"]["monday"]:
+        return 1
+    elif day in config["day_translations"]["tuesday"]:
+        return 2
+    elif day in config["day_translations"]["wednesday"]:
+        return 3
+    elif day in config["day_translations"]["thursday"]:
+        return 4
+    elif day in config["day_translations"]["friday"]:
+        return 5
+    elif day in config["day_translations"]["saturday"]:
+        return 6
+    else:
+        print "Invalid day name given as input."
+        return -7
 
+def get_time_in_seconds():
+    currTime = str(datetime.now().time())
+    parsedCurrTime = currTime.split(":")
+    timeInSecs = 3600*int(parsedCurrTime[0])+60*int(parsedCurrTime[1])+float(parsedCurrTime[2])
+    return timeInSecs
 
 
 
