@@ -42,12 +42,20 @@ class BettingDB():
 
         # Check to see if line has changed since last check
         query_string = """SELECT home_line FROM {0}_lines WHERE id={1} AND site=\'{2}\' ORDER BY poll_time DESC LIMIT 1;""".format(line["sport"],line["id"],line["site"])
-        previous_home_line = float(self.strip_unwanted_text(str(self.execute_query(query_string))))
+        previous_home_line = self.strip_unwanted_text(str(self.execute_query(query_string)))
+        if len(previous_home_line) > 0:
+            previous_home_line = float(previous_home_line)
+        else:
+            previous_home_line = -1
         query_string = """SELECT away_line FROM {0}_lines WHERE id={1} AND site=\'{2}\' ORDER BY poll_time DESC LIMIT 1;""".format(line["sport"],line["id"],line["site"])
-        previous_away_line = float(self.strip_unwanted_text(str(self.execute_query(query_string))))
-        
+        previous_away_line = self.strip_unwanted_text(str(self.execute_query(query_string)))
+        if len(previous_away_line) > 0:
+            previous_away_line = float(previous_away_line)
+        else:
+            previous_away_line = -1
+
         if abs(line["home_line"]-previous_home_line) < 0.001 and abs(line["away_line"]-previous_away_line) < 0.001:
-            print "Line in game of ", line["away_team"], " at ", line["home_team"], " has not changed. Continuing to next game..."
+            print "Line in game of ", line["away_team"], " at ", line["home_team"], " has not changed. Continuing to next line..."
             return
 
         print "Adding moneyline"
