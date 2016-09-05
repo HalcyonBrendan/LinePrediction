@@ -375,7 +375,11 @@ class Pinnacle():
         try:
             self.driver.get('https://www.pinnacle.com/en/rtn')
 
-            loginScreen = self.driver.find_element_by_id('loginButton').click()
+            try:
+                loginScreen = self.driver.find_element_by_id('loginButton').click()
+            except NoSuchElementException:
+                print "Cannot find Login button. May already be logged in - trying to continue..."
+                return
 
             username = self.driver.find_element_by_name('CustomerId')
             password = self.driver.find_element_by_name('Password')
@@ -387,7 +391,7 @@ class Pinnacle():
         except TimeoutException:
             print "Loading took too much time! Trying again in five minutes"
             time.sleep(300) # sleep for 5 mins
-            odds.run()
+            self.login()
 
     def logout(self):
         self.class_print("logging out")
