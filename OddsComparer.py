@@ -157,7 +157,7 @@ class OddsComparer():
         return game_string
 
     def get_poisson_arrival_time(self, lambda_val):
-        return 600
+        return 1200
         #return -1*math.log(max(0.0001,random.random()))/float(lambda_val)
 
 if __name__ == "__main__":

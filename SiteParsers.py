@@ -372,18 +372,22 @@ class Pinnacle():
 
     def login(self):
         self.class_print("obtaining main webpage")
+        try:
+            self.driver.get('https://www.pinnacle.com/en/rtn')
 
-        self.driver.get('https://www.pinnacle.com/en/rtn')
+            loginScreen = self.driver.find_element_by_id('loginButton').click()
 
-        loginScreen = self.driver.find_element_by_id('loginButton').click()
+            username = self.driver.find_element_by_name('CustomerId')
+            password = self.driver.find_element_by_name('Password')
 
-        username = self.driver.find_element_by_name('CustomerId')
-        password = self.driver.find_element_by_name('Password')
-
-        username.send_keys(config["passwords"]["Pinnacle"]["username"])
-        password.send_keys(config["passwords"]["Pinnacle"]["password"])
-        self.class_print("logging in")
-        password.send_keys(Keys.RETURN)
+            username.send_keys(config["passwords"]["Pinnacle"]["username"])
+            password.send_keys(config["passwords"]["Pinnacle"]["password"])
+            self.class_print("logging in")
+            password.send_keys(Keys.RETURN)
+        except TimeoutException:
+            print "Loading took too much time! Trying again in five minutes"
+            time.sleep(300) # sleep for 5 mins
+            odds.run()
 
     def logout(self):
         self.class_print("logging out")
@@ -424,20 +428,35 @@ class Pinnacle():
                 semiGames = day.find_all("tr", {'class':re.compile("linesAlt*")}) #use regex to get linesAlt1 and linesAlt2
 
                 teamCounter = 0
+                flag = 0
                 for cell in semiGames:
                     teamCounter += 1
+                    # Check if flag indicating offline game is raised. If so, skip rest of game
+                    if flag == 1:
+                        flag = 0
+                        continue
+
                     if teamCounter % 2 == 1:
                         away_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
                         away_team = self.translate_name(self.strip_unwanted_text(away_team),sport)
                         day_info = cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip()
-                        away_line = float(cell.find("span", {"id": re.compile("divM*")}).string)
                         d_info = day_info.split(" ")
                         day = str(d_info[0])
+                        try:
+                            away_line = float(cell.find("span", {"id": re.compile("divM*")}).string)
+                        except:
+                            print "Game with away team: ", away_team, " is offline or otherwise unavailable. Skipping game for now..."
+                            flag = 1
+                            continue
                     else:
                         home_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
                         home_team = self.translate_name(self.strip_unwanted_text(home_team),sport)
                         gtime = str(cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip())
-                        home_line = float(cell.find("span", {"id": re.compile("divM*")}).string)
+                        try:
+                            home_line = float(cell.find("span", {"id": re.compile("divM*")}).string)
+                        except:
+                            print "Game with home team: ", home_team, " is offline or otherwise unavailable. Skipping game for now..."
+                            continue
 
                         game_time = self.translate_datetime(day.strip(), gtime.strip())
                         poll_time = int(time.time())
