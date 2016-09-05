@@ -12,11 +12,16 @@ class BettingDB():
         self.date = datetime.datetime.now()
 
     def execute_command(self, query_string):
-        print "{}\n\n".format(query_string)
+        print "{}\n".format(query_string)
         self.cursor.execute(query_string)
 
         self.db.commit()
 
+    def execute_query(self, query_string):
+        cursor = self.db.cursor()
+        cursor.execute(query_string)
+        sqlOut = cursor.fetchall()
+        return sqlOut
 
     def add_moneyline(self, line, game_id):
         # print type(game["home_line"])
@@ -27,7 +32,7 @@ class BettingDB():
             print "{}_lines does not exist".format(line[sport])
             self.create_moneyline_table(line["sport"])
 
-        print "Ensuring proper format"
+        line["id"] = self.get_game_id(line)
 
         # Make sure all odds are in decimal form (not American)
         if abs(line["home_line"]) > 99:
@@ -35,18 +40,27 @@ class BettingDB():
         if abs(line["away_line"]) > 99:
             line["away_line"] = convert_odds(line["away_line"],"american","decimal")
 
-        print "Adding moneyline"
+        # Check to see if line has changed since last check
+        query_string = """SELECT home_line FROM {0}_lines WHERE id={1} AND site=\'{2}\' ORDER BY poll_time DESC LIMIT 1;""".format(line["sport"],line["id"],line["site"])
+        previous_home_line = float(self.strip_unwanted_text(str(self.execute_query(query_string))))
+        query_string = """SELECT away_line FROM {0}_lines WHERE id={1} AND site=\'{2}\' ORDER BY poll_time DESC LIMIT 1;""".format(line["sport"],line["id"],line["site"])
+        previous_away_line = float(self.strip_unwanted_text(str(self.execute_query(query_string))))
+        
+        if abs(line["home_line"]-previous_home_line) < 0.001 and abs(line["away_line"]-previous_away_line) < 0.001:
+            print "Line in game of ", line["away_team"], " at ", line["home_team"], " has not changed. Continuing to next game..."
+            return
 
-        line["id"] = self.get_game_id(line)
+        print "Adding moneyline"
 
         query_string = """INSERT INTO {8}_lines (poll_time, id, game_time, home_team, home_line, away_team, away_line, site)
     VALUES ({0},{1},{2},\'{3}\',{4},\'{5}\',{6},\'{7}\')""".format(line["poll_time"], line["id"], line["game_time"], line["home_team"],
     line["home_line"], line["away_team"], line["away_line"],line["site"],line["sport"])
         self.execute_command(query_string)
 
+
     def create_moneyline_table(self,sport):
         query_string = """CREATE TABLE {}_lines (poll_time INT, id INT, game_time INT,
-home_team TEXT, home_line DOUBLE(4,3), away_team TEXT, away_line DOUBLE(4,3), site TEXT)""".format(sport)
+    home_team TEXT, home_line DOUBLE(4,3), away_team TEXT, away_line DOUBLE(4,3), site TEXT)""".format(sport)
         # print query_string
         self.execute_command(query_string)
 
@@ -196,6 +210,15 @@ VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\')""".format(new_id,game["home_team"],
                 game_id,game["sport"])      
             # print query_string
             self.cursor.execute(query_string)
+
+    def strip_unwanted_text(self,my_str):
+        
+        chars_to_strip = ["(",")",",", " "]
+        for item in chars_to_strip:
+            # print "\'{0}\' in \'{1}\'? {2}".format(item, my_str, item in my_str)
+            my_str = my_str.replace(item,'')
+
+        return my_str
 
     def shutdown(self):
         self.db.disconnect()

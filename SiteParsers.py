@@ -67,12 +67,12 @@ class bodog():
                 if "EVEN" in away_line_string:
                     away_line = 100
                 else:
-                    away_line = int(away_line_string)
+                    away_line = float(away_line_string)
                 
                 if "EVEN" in home_line_string:
                     home_line = 100
                 else:
-                    home_line = int(home_line_string)
+                    home_line = float(home_line_string)
 
                 poll_time = int(time.time())
 
@@ -253,7 +253,7 @@ class FiveDimes():
                     if any(i.isdigit() for i in away_team) or ("Series" in away_team) or ("goes" in away_team):
                         continue
 
-                    away_line = int(re.split(' ',str(elements[4].getText().replace(u'\xa0', u'')))[0])
+                    away_line = float(re.split(' ',str(elements[4].getText().replace(u'\xa0', u'')))[0])
 
                     elements = home_cells[i].findAll('td')
 
@@ -274,7 +274,7 @@ class FiveDimes():
                     if any(i.isdigit() for i in home_team) or any(rem in home_team for rem in config["banned"]):
                         continue
 
-                    home_line = int(re.split(' ',str(elements[4].getText().replace(u'\xa0', u'')))[0])
+                    home_line = float(re.split(' ',str(elements[4].getText().replace(u'\xa0', u'')))[0])
 
                     poll_time = int(time.time())
 
@@ -390,7 +390,7 @@ class Pinnacle():
             password.send_keys(Keys.RETURN)
         except TimeoutException:
             print "Loading took too much time! Trying again in five minutes"
-            time.sleep(300) # sleep for 5 mins
+            self.countdown_sleep(300) # sleep for 5 mins
             self.login()
 
     def logout(self):
@@ -536,6 +536,16 @@ class Pinnacle():
         hour = (int(parsed_time[0])+12*(am_pm=="P"))
         time_in_mins = 60*hour + minutes
         return 60*time_in_mins
+
+    def countdown_sleep(self, time_to_sleep):
+        for i in range(time_to_sleep):
+            sys.stdout.write('\r')
+            sys.stdout.write(str(time_to_sleep - i))
+            sys.stdout.flush()
+            time.sleep(1) 
+
+            if interrupted:
+                break
 
         # if float_time >= 13:
         #     float_time -= 12
