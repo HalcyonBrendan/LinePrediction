@@ -368,9 +368,9 @@ class Pinnacle():
         self.sports_translations = config["sports_translations"][self.name]
         self.class_print("initialized")
         self.acceptable_delay = 10 #s
-        self.logged_in_flag = 0
 
     def login(self):
+
         self.class_print("obtaining main webpage")
         try:
             self.driver.get('https://www.pinnacle.com/en/rtn')
@@ -379,7 +379,6 @@ class Pinnacle():
                 loginScreen = self.driver.find_element_by_id('loginButton').click()
             except:
                 print "Cannot find Login button. May already be logged in - trying to continue..."
-                self.logged_in_flag = 1
                 return
 
             username = self.driver.find_element_by_name('CustomerId')
@@ -389,7 +388,6 @@ class Pinnacle():
             password.send_keys(config["passwords"]["Pinnacle"]["password"])
             self.class_print("logging in")
             password.send_keys(Keys.RETURN)
-            self.logged_in_flag = 1
 
         except TimeoutException:
             print "Loading took too much time! Trying again in one minute"
@@ -405,8 +403,7 @@ class Pinnacle():
 
     def get_moneylines(self, sports):
 
-        if self.logged_in_flag == 0:
-            self.login()
+        self.login()
 
         self.class_print("Obtaining moneylines")
 
