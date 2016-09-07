@@ -398,8 +398,7 @@ class Pinnacle():
 
     def logout(self):
         self.class_print("logging out")
-        link = self.driver.find_element_by_link_text('Log Out')
-        link.click()
+        self.driver.find_element_by_link_text('Log Out').click()
 
     def get_moneylines(self, sports):
 
@@ -568,22 +567,50 @@ class Pinnacle():
 
 
 
-
-
-
-
-
-
-'''class Pinnacle():
+class SportsInteraction():
 
     def __init__(self,driver):
-        self.name = "Pinnacle"
+        self.name = "SportsInteraction"
         self.driver = driver
         self.links = config["sport_webpages"][self.name]
         self.sports_translations = config["sports_translations"][self.name]
         self.class_print("initialized")
+        self.acceptable_delay = 10 #s
+
+    def login(self):
+        self.class_print("obtaining main webpage")
+        try:
+            self.driver.get("https://www.sportsinteraction.com/")
+
+            try:
+                loginScreen = self.driver.find_element_by_id('headerLoginBtn').click()
+            except:
+                print "Cannot find Login button. May already be logged in - trying to continue..."
+                return
+
+            username = self.driver.find_element_by_id('iLoginUsername')
+            password = self.driver.find_element_by_id('iLoginPassword')
+
+            username.send_keys(config["passwords"]["SportsInteraction"]["username"])
+            password.send_keys(config["passwords"]["SportsInteraction"]["password"])
+            self.class_print("logging in")
+            password.send_keys(Keys.RETURN)
+
+        except:
+            print "Loading took too much time! Trying again in one minute"
+            # Go to different page in the meantime
+            self.driver.get('https://www.google.ca')
+            self.countdown_sleep(60) # sleep for 5 mins
+            self.login()
+
+
+    def logout(self):
+        self.class_print("logging out")
+        self.driver.find_element_by_id('headerLogoutBtn').click()
 
     def get_moneylines(self, sports):
+
+        self.login()
 
         self.class_print("Obtaining moneylines")
 
@@ -594,99 +621,13 @@ class Pinnacle():
             self.class_print("Getting webpage for {}".format(sport))
 
             self.driver.get(self.links[sport])
-
-            self.class_print("HTML obtained. Scraping site")
-            soup = BeautifulSoup(self.driver.page_source, "html.parser")
-            tables = soup.findAll("div", {"ng-repeat": "league in date.leagues"})
-
-            for item in tables:
-                result = item.findAll("div", {"class": "toolbar"})[0]
-                if self.sports_translations[sport] in result.getText():
-                    game_time = {"day": str(re.split('\W+',result.getText())[1])}
-                    soup = item
-
-                    game_cells = soup.findAll("tbody", {"ng-repeat" :"event in events = (league.events | filter: linesDataExists)"})
-
-                    for cell in game_cells:
-
-                        teams = cell.findAll("span", {"ng-if" :"participant.Name != undefined"})
-                        away_team = self.translate_name(self.strip_unwanted_text(teams[0].getText()), sport)
-                        home_team = self.translate_name(self.strip_unwanted_text(teams[1].getText()), sport)
-
-                        # print away_team, home_team
-
-                        # print game_time
-
-                        time = cell.findAll("td", {"ng-if": "$index == 0"})[0]
-                        time = time.findAll("span", {"class": "ng-binding"})[0].getText()
-
-                        game_time["time"] = self.time_zone_change(str(time))
-
-                        # print game_time
-
-                        moneyline_cells = cell.findAll('span', {'ng-if': "participant.MoneyLine != undefined && !isOffline(event)"})
-                        away_line = self.convert_decimal_to_american(moneyline_cells[0].getText())
-                        home_line = self.convert_decimal_to_american(moneyline_cells[1].getText())
-
-                        # print away_line, home_line
-
-                        moneylines.append(
-                            {
-                                "home_team": home_team, 
-                                "away_team": away_team,
-                                "game_time": game_time, 
-                                "home_line": home_line, 
-                                "away_line": away_line,
-                                "sport":sport
-                            }
-                        )
-
-        return {"site": self.name, "moneylines": moneylines}
-
-    def strip_unwanted_text(self,my_str):
-        for item in config['to_strip']:
-            # print "\'{0}\' in \'{1}\'? {2}".format(item, my_str, item in my_str)
-            my_str = my_str.replace(item,'')
-
-        return my_str
-
-    def translate_name(self, long_form, sport):
-        # print long_form
-        for short_form in config["short_names"][sport]:
-            if long_form in config["short_names"][sport][short_form]:
-                return short_form
-
-        return long_form
-
-    def convert_decimal_to_american(self,decimal_odds):
-        decimal_odds = float(decimal_odds)
-        if decimal_odds >= 2:
-            return int((decimal_odds - 1) * 100)
-        elif decimal_odds < 2:
-            return int(-100/(decimal_odds - 1))
-
-    def time_zone_change(self, my_time):
-        float_time = float(my_time) + 3
-        return float_time
-
-        # if float_time >= 13:
-        #     float_time -= 12
-        #     if float_time >= 10:
-        #         return "{0:5.2f}p".format(float_time)
-        #     else:
-        #         return "{0:4.2f}p".format(float_time)
-        # elif float_time >= 12:
-        #     return "{0:5.2f}p".format(float_time)
-        # elif float_time < 1:
-        #     return "{0:5.2f}a".format(float_time + 12)
-        # elif float_time >= 10:
-        #     return "{0:5.2f}a".format(float_time)
-        # else:
-        #     return "{0:4.2f}a".format(float_time)
+            
 
     def class_print(self, string):
         print "{0}: {1}".format(self.name, string)
-'''
+
+
+
 
 def get_day_number(day):
 
