@@ -8,7 +8,7 @@ from config import CONFIG as config
 from bs4 import BeautifulSoup
 from pyvirtualdisplay import Display
 from datetime import datetime
-import time, json, re, math, string
+import time, json, re, math, string, sys
 
 
 def print_json(json_object):
@@ -368,7 +368,7 @@ class Pinnacle():
         self.sports_translations = config["sports_translations"][self.name]
         self.class_print("initialized")
         self.acceptable_delay = 10 #s
-
+        self.logged_in_flag = 0
 
     def login(self):
         self.class_print("obtaining main webpage")
@@ -377,8 +377,9 @@ class Pinnacle():
 
             try:
                 loginScreen = self.driver.find_element_by_id('loginButton').click()
-            except NoSuchElementException:
+            except:
                 print "Cannot find Login button. May already be logged in - trying to continue..."
+                self.logged_in_flag = 1
                 return
 
             username = self.driver.find_element_by_name('CustomerId')
@@ -388,9 +389,13 @@ class Pinnacle():
             password.send_keys(config["passwords"]["Pinnacle"]["password"])
             self.class_print("logging in")
             password.send_keys(Keys.RETURN)
+            self.logged_in_flag = 1
+
         except TimeoutException:
-            print "Loading took too much time! Trying again in five minutes"
-            self.countdown_sleep(300) # sleep for 5 mins
+            print "Loading took too much time! Trying again in one minute"
+            # Go to different page in the meantime
+            self.driver.get('https://www.google.ca')
+            self.countdown_sleep(60) # sleep for 5 mins
             self.login()
 
     def logout(self):
@@ -400,7 +405,8 @@ class Pinnacle():
 
     def get_moneylines(self, sports):
 
-        self.login()
+        if self.logged_in_flag == 0:
+            self.login()
 
         self.class_print("Obtaining moneylines")
 
@@ -476,10 +482,10 @@ class Pinnacle():
                                 "sport":sport
                             }
                         )
-        try:
-            self.logout()
-        except:
-            pass
+        #try:
+        #    self.logout()
+        #except:
+        #    pass
 
         return {"site": self.name, "moneylines": moneylines}
 
@@ -544,8 +550,6 @@ class Pinnacle():
             sys.stdout.flush()
             time.sleep(1) 
 
-            if interrupted:
-                break
 
         # if float_time >= 13:
         #     float_time -= 12
