@@ -155,7 +155,7 @@ class bodog():
 class FiveDimes():
 
     def __init__(self, driver):
-        self.name = "5Dimes"
+        self.name = "FiveDimes"
         self.sports_translations = config["sports_translations"][self.name]
         self.driver = driver
         self.acceptable_delay = 10 #s
@@ -412,13 +412,16 @@ class Pinnacle():
 
             self.class_print("Getting webpage for {}".format(sport))
 
-            self.driver.get(self.links[sport])
-
             try:
+                self.driver.get(self.links[sport])
+
                 WebDriverWait(self.driver, self.acceptable_delay).until(
                     EC.presence_of_element_located((By.ID, "LinesContainer")))
-            except TimeoutException:
-                print "Loading took too much time!"
+            except:
+                print "Loading took too much time! Trying again in one minute"
+                # Go to different page in the meantime
+                self.driver.get('https://www.google.ca')
+                self.countdown_sleep(60)
 
             time.sleep(1) # temp to make sure everything is loading
             self.class_print("HTML obtained. Scraping site")
@@ -620,8 +623,98 @@ class SportsInteraction():
 
             self.class_print("Getting webpage for {}".format(sport))
 
-            self.driver.get(self.links[sport])
-            
+            try:
+                self.driver.get(self.links[sport])
+
+                WebDriverWait(self.driver, self.acceptable_delay).until(
+                    EC.presence_of_element_located((By.ID, "LinesContainer")))
+            except:
+                print "Loading took too much time! Trying again in one minute"
+                # Go to different page in the meantime
+                self.driver.get('https://www.google.ca')
+                self.countdown_sleep(60)
+
+            time.sleep(1) # temp to make sure everything is loading
+            self.class_print("HTML obtained. Scraping site")
+            soup = BeautifulSoup(self.driver.page_source, "html.parser")
+            days = soup.find_all("div", {'class':"linesDiv"})
+
+            for day in days:
+                
+                betType = day.find("tr", {'class':"linesColumns"}).find("td").contents[0].strip()
+                if betType != "Game":
+                    continue
+
+                semiGames = day.find_all("tr", {'class':re.compile("linesAlt*")}) #use regex to get linesAlt1 and linesAlt2
+
+                teamCounter = 0
+                flag = 0
+                for cell in semiGames:
+                    teamCounter += 1
+                    # Check if flag indicating offline game is raised. If so, skip rest of game
+                    if flag == 1:
+                        flag = 0
+                        continue
+
+                    if teamCounter % 2 == 1:
+                        away_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
+                        away_team = self.translate_name(self.strip_unwanted_text(away_team),sport)
+                        day_info = cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip()
+                        d_info = day_info.split(" ")
+                        day = str(d_info[0])
+                        try:
+                            away_line = float(cell.find("span", {"id": re.compile("divM*")}).string)
+                        except:
+                            print "Game with away team: ", away_team, " is offline or otherwise unavailable. Skipping game for now..."
+                            flag = 1
+                            continue
+                    else:
+                        home_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
+                        home_team = self.translate_name(self.strip_unwanted_text(home_team),sport)
+                        gtime = str(cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip())
+                        try:
+                            home_line = float(cell.find("span", {"id": re.compile("divM*")}).string)
+                        except:
+                            print "Game with home team: ", home_team, " is offline or otherwise unavailable. Skipping game for now..."
+                            continue
+
+                        game_time = self.translate_datetime(day.strip(), gtime.strip())
+                        poll_time = int(time.time())
+                        
+                        moneylines.append(
+                            {
+                                "home_team": home_team, 
+                                "away_team": away_team,
+                                "game_time": game_time, 
+                                "home_line": home_line, 
+                                "away_line": away_line,
+                                "poll_time": poll_time,
+                                "sport":sport
+                            }
+                        )
+        #try:
+        #    self.logout()
+        #except:
+        #    pass
+
+        return {"site": self.name, "moneylines": moneylines}
+
+    def strip_unwanted_text(self,my_str):
+        for item in config['to_strip']:
+            # print "\'{0}\' in \'{1}\'? {2}".format(item, my_str, item in my_str)
+            my_str = my_str.replace(item,'')
+
+        return my_str
+
+    def translate_name(self, long_form, sport):
+        # print long_form
+        for short_form in config["short_names"][sport]:
+            if long_form in config["short_names"][sport][short_form]:
+                return short_form
+
+        return long_form
+
+
 
     def class_print(self, string):
         print "{0}: {1}".format(self.name, string)
