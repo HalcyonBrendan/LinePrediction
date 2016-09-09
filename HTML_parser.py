@@ -29,6 +29,7 @@ class HTML_parser():
 		self.parsers["bodog"] = SiteParsers.bodog(self.driver)
 		self.parsers["FiveDimes"] = SiteParsers.FiveDimes(self.driver)
 		self.parsers["Pinnacle"] = SiteParsers.Pinnacle(self.driver)	 
+		self.parsers["SportsInteraction"] = SiteParsers.SportsInteraction(self.driver)
 
 	def get_moneylines(self):
 
@@ -39,7 +40,7 @@ class HTML_parser():
 			#if site == "bodog" or site == "FiveDimes":
 			#	continue
 
-			print "Parsing {0} for {1}".format(site, self.sports[site])
+			print "Parsing", site, "for", ", ".join(self.sports[site])
 
 			moneylines.append(self.parsers[site].get_moneylines(self.sports[site]))
 
