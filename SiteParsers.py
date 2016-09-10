@@ -105,7 +105,7 @@ class bodog():
                 break
             previous_length = len(games)
             first_scroll = False
-            time.sleep(2)
+            time.sleep(0.5)
 
     def translate_name(self, long_form, sport):
         # print long_form
@@ -167,8 +167,12 @@ class FiveDimes():
 
         self.driver.get('http://www.5dimes.eu/sportsbook.html')
 
-        username = self.driver.find_element_by_name('customerID')
-        password = self.driver.find_element_by_name('password')
+        try:
+            username = self.driver.find_element_by_name('customerID')
+            password = self.driver.find_element_by_name('password')
+        except:
+            print "Cannot find login screen. May already be logged in - trying to continue..."
+            return
 
         username.send_keys(config["passwords"]["FiveDimes"]["username"])
         password.send_keys(config["passwords"]["FiveDimes"]["password"])
@@ -309,10 +313,10 @@ class FiveDimes():
 
             self.driver.find_element_by_name(self.sports_translations[sport]).click() # unclick
 
-        try:
-            self.logout()
-        except:
-            pass
+        #try:
+        #    self.logout()
+        #except:
+        #    pass
 
         return {"site": self.name, "moneylines": moneylines}
 
@@ -619,6 +623,11 @@ class SportsInteraction():
         
         for sport in sports:
 
+            if sport == "baseball_al" or sport == "baseball_nl":
+                sport_name = "baseball"
+            else:
+                sport_name = sport
+
             self.class_print("Getting webpage for {}".format(sport))
 
             try:
@@ -639,8 +648,32 @@ class SportsInteraction():
 
             for game in games:
                 
+                temp_day = game.find("h2", {'class':"date"})
+                if len(temp_day) > 0:
+                    temp_day = temp_day.contents[0].split(",")
+                    day = str(temp_day[0]).strip()
 
-                game_time = self.translate_datetime(day.strip(), gtime.strip())
+                gtime = str(game.find("span", {'class':"time"}).contents[0]).strip()
+                game_time = self.translate_datetime(day, gtime)
+
+                lines = game.findAll("ul", {'class':"runnerListRow twoWay"})[1]
+                away_info = lines.findAll("li", {'class':"runner"})[0]
+                home_info = lines.findAll("li", {'class':"runner"})[1]
+                away_team = away_info.find("span", {'class':"name"}).contents[0]
+                home_team = home_info.find("span", {'class':"name"}).contents[0]
+                away_team = self.translate_name(str(away_team.split(':')[0]).strip(),sport_name)
+                home_team = self.translate_name(str(home_team.split(':')[0]).strip(),sport_name)
+                try:
+                    away_line = float(away_info.find("span", {'class':"price"}).string)
+                except:
+                    print "Game with away team: ", home_team, " is offline or otherwise unavailable. Skipping game for now..."
+                    continue
+                try:    
+                    home_line = float(home_info.find("span", {'class':"price"}).string)
+                except:
+                    print "Game with home team: ", home_team, " is offline or otherwise unavailable. Skipping game for now..."
+                    continue
+
                 poll_time = int(time.time())
                 
                 moneylines.append(
@@ -651,7 +684,7 @@ class SportsInteraction():
                         "home_line": home_line, 
                         "away_line": away_line,
                         "poll_time": poll_time,
-                        "sport":sport
+                        "sport":sport_name
                     }
                 )
         #try:
@@ -676,6 +709,39 @@ class SportsInteraction():
 
         return long_form
 
+    # given day of the week and time of game, returns datetime in seconds fromtimestamp
+    def translate_datetime(self, day, game_time):
+        # get numeric value of game day and current day
+        game_day = get_day_number(day)
+        curr_day = int(time.strftime("%w"))
+        # compute how many days in future the game is
+        day_diff = (game_day-curr_day)%7
+        # convert time to minute of day
+        game_day_secs = self.time_to_sec(game_time)
+        curr_day_secs = get_time_in_seconds()
+        # compute how many seconds until the game
+        seconds_til_game = 24*60*60*day_diff + game_day_secs-curr_day_secs
+        # compute gametime in seconds fromtimestamp (with a bit of rounding)
+        gametime_in_seconds = int(round((time.time()+seconds_til_game)/10)*10)
+        return gametime_in_seconds
+
+    def time_to_sec(self, game_time):
+        
+        parsed_time = game_time.split(":")
+        ten_mins = int(parsed_time[1][0])
+        one_mins = int(parsed_time[1][1])
+        minutes = 10*ten_mins + one_mins
+        # sportsinteraction uses 24h clock
+        hour = int(parsed_time[0])
+        time_in_mins = 60*hour + minutes
+        return 60*time_in_mins
+
+    def countdown_sleep(self, time_to_sleep):
+        for i in range(time_to_sleep):
+            sys.stdout.write('\r')
+            sys.stdout.write(str(time_to_sleep - i))
+            sys.stdout.flush()
+            time.sleep(1) 
 
 
     def class_print(self, string):
