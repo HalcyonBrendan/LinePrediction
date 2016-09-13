@@ -150,8 +150,6 @@ class bodog():
 
 
 
-
-
 class FiveDimes():
 
     def __init__(self, driver):

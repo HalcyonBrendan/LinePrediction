@@ -18,9 +18,8 @@ class BettingDB():
         self.db.commit()
 
     def execute_query(self, query_string):
-        cursor = self.db.cursor()
-        cursor.execute(query_string)
-        sqlOut = cursor.fetchall()
+        self.cursor.execute(query_string)
+        sqlOut = self.cursor.fetchall()
         return sqlOut
 
     def add_moneyline(self, line, game_id):
