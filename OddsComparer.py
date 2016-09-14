@@ -43,7 +43,8 @@ class OddsComparer():
                     game = {
                         "home_team": home team's short name, 
                         "away_team": away team's short name,
-                        "game_time": game time (miiiiight not be standardized), 
+                        "game_time": game time,
+                        "poll_time": time that odds were retrieved from site.
                         "home_line": home team's line, 
                         "away_line": away team's line,
                         "sport": name of the sport

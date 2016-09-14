@@ -651,7 +651,12 @@ class SportsInteraction():
                     temp_day = temp_day.contents[0].split(",")
                     day = str(temp_day[0]).strip()
 
-                gtime = str(game.find("span", {'class':"time"}).contents[0]).strip()
+                try:
+                    gtime = str(game.find("span", {'class':"time"}).contents[0]).strip()
+                except:
+                    print "Error when trying to obtain game time. Skipping game for now..."
+                    continue
+
                 game_time = self.translate_datetime(day, gtime)
 
                 lines = game.findAll("ul", {'class':"runnerListRow twoWay"})[1]
