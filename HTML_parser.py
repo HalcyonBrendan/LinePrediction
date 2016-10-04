@@ -37,7 +37,7 @@ class HTML_parser():
 
 		for site in self.betting_websites:
 
-			#if site == "bodog" or site == "FiveDimes":
+			#if site == "Pinnacle":
 			#	continue
 
 			print "Parsing", site, "for", ", ".join(self.sports[site])

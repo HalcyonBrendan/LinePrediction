@@ -44,7 +44,7 @@ class OddsComparer():
                         "home_team": home team's short name, 
                         "away_team": away team's short name,
                         "game_time": game time,
-                        "poll_time": time that odds were retrieved from site.
+                        "poll_time": time that odds were retrieved from site,
                         "home_line": home team's line, 
                         "away_line": away team's line,
                         "sport": name of the sport
@@ -122,7 +122,7 @@ class OddsComparer():
 
         for money_line in money_lines_to_compare:
             gametime_string = self.convert_timestamp_to_time_string(money_line["poll_time"])
-            
+
             if money_line[favourite + "_line"] + game[underdog + "_line"] > betting_max["diff"]:
                 betting_max["diff"] = money_line[favourite + "_line"] + game[underdog + "_line"]
                 betting_max["now_team"] = game[underdog+"_team"]

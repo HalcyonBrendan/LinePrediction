@@ -157,7 +157,8 @@ class BettingDB():
         query_string = """SELECT id FROM game_ids 
             WHERE home_team = \'{0}\' 
             AND away_team = \'{1}\'
-            AND game_time = \'{2}\'
+            AND game_time < \'{2}\'+1800
+            AND game_time > \'{2}\'-1800
             AND sport = \'{3}\'""".format(game["home_team"],
             game["away_team"],game["game_time"], game["sport"])
             
@@ -220,7 +221,7 @@ VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\')""".format(new_id,game["home_team"],
 
     def strip_unwanted_text(self,my_str):
         
-        chars_to_strip = ["(",")",",", " "]
+        chars_to_strip = ["(", ")", ",", " "]
         for item in chars_to_strip:
             # print "\'{0}\' in \'{1}\'? {2}".format(item, my_str, item in my_str)
             my_str = my_str.replace(item,'')

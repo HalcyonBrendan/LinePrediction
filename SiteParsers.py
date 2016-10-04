@@ -658,7 +658,6 @@ class SportsInteraction():
                     continue
 
                 game_time = self.translate_datetime(day, gtime)
-
                 lines = game.findAll("ul", {'class':"runnerListRow twoWay"})[1]
                 away_info = lines.findAll("li", {'class':"runner"})[0]
                 home_info = lines.findAll("li", {'class':"runner"})[1]
