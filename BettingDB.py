@@ -157,11 +157,11 @@ class BettingDB():
         query_string = """SELECT id FROM game_ids 
             WHERE home_team = \'{0}\' 
             AND away_team = \'{1}\'
-            AND game_time < \'{2}\'+1800
-            AND game_time > \'{2}\'-1800
-            AND sport = \'{3}\'""".format(game["home_team"],
+            AND game_time < {2}+1800
+            AND game_time > {2}-1800
+            AND sport = \'{3}\';""".format(game["home_team"],
             game["away_team"],game["game_time"], game["sport"])
-            
+
         self.cursor.execute(query_string)
         try:
             # attempts to get the result 
@@ -194,7 +194,7 @@ class BettingDB():
             new_id = largest_id + 1
         else:
             new_id = 1
-        
+
         query_string = """INSERT INTO game_ids (id,home_team,away_team,sport,game_time)
 VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\')""".format(new_id,game["home_team"],game["away_team"],
             game["sport"],game["game_time"])
