@@ -32,7 +32,7 @@ class OddsComparer():
 
             # for sport in self.games:
             for group in self.games:
-                # check to see if game id exsists in
+
                 site = group["site"]
                 # print site
                 for game in group["moneylines"]:

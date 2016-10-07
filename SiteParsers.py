@@ -47,8 +47,11 @@ class bodog():
             for cell in game_cells:
 
                 teams = cell.findAll("h3", {"class" :"ng-binding ng-scope"})
-                away_team = self.translate_name(teams[0].getText(), sport)
-                home_team = self.translate_name(teams[1].getText(), sport)
+                away_team = translate_name(teams[0].getText(), sport)
+                home_team = translate_name(teams[1].getText(), sport)
+                if away_team=="unknown" or home_team=="unknown":
+                    print "Team name not recognized. Skipping game ..."
+                    continue
 
                 day, gtime = re.split(' ',str(cell.findAll("time")[0].getText()))
 
@@ -106,14 +109,6 @@ class bodog():
             previous_length = len(games)
             first_scroll = False
             time.sleep(0.5)
-
-    def translate_name(self, long_form, sport):
-        # print long_form
-        for short_form in config["short_names"][sport]:
-            if long_form in config["short_names"][sport][short_form]:
-                return short_form
-
-        return long_form
 
     # given day of the week and time of game, returns datetime in seconds fromtimestamp
     def translate_datetime(self, day, game_time):
@@ -250,7 +245,10 @@ class FiveDimes():
                         else:
                             break
                     
-                    away_team = self.translate_name(" ".join(away_string), sport)
+                    away_team = translate_name(" ".join(away_string), sport)
+                    if away_team=="unknown":
+                        print "Team name not recognized. Skipping game ..."
+                        continue
 
                     if any(i.isdigit() for i in away_team) or ("Series" in away_team) or ("goes" in away_team):
                         continue
@@ -271,7 +269,10 @@ class FiveDimes():
                         else:
                             break
                     
-                    home_team = self.translate_name(" ".join(home_string), sport)
+                    home_team = translate_name(" ".join(home_string), sport)
+                    if home_team=="unknown":
+                        print "Team name not recognized. Skipping game ..."
+                        continue
 
                     if any(i.isdigit() for i in home_team) or any(rem in home_team for rem in config["banned"]):
                         continue
@@ -317,14 +318,6 @@ class FiveDimes():
         #    pass
 
         return {"site": self.name, "moneylines": moneylines}
-
-    def translate_name(self, long_form, sport):
-        # print long_form
-        for short_form in config["short_names"][sport]:
-            if long_form in config["short_names"][sport][short_form]:
-                return short_form
-
-        return long_form
 
     # given day of the week and time of game, returns datetime in seconds fromtimestamp
     def translate_datetime(self, day, game_time):
@@ -448,7 +441,10 @@ class Pinnacle():
 
                     if teamCounter % 2 == 1:
                         away_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
-                        away_team = self.translate_name(self.strip_unwanted_text(away_team),sport)
+                        away_team = translate_name(self.strip_unwanted_text(away_team),sport)
+                        if away_team=="unknown":
+                            print "Team name not recognized. Skipping game ..."
+                            continue
                         day_info = cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip()
                         d_info = day_info.split(" ")
                         day = str(d_info[0])
@@ -460,7 +456,10 @@ class Pinnacle():
                             continue
                     else:
                         home_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
-                        home_team = self.translate_name(self.strip_unwanted_text(home_team),sport)
+                        home_team = translate_name(self.strip_unwanted_text(home_team),sport)
+                        if home_team=="unknown":
+                            print "Team name not recognized. Skipping game ..."
+                            continue
                         gtime = str(cell.find("span", {"id": re.compile("gameProgress*")}).contents[0].strip())
                         try:
                             home_line = float(cell.find("span", {"id": re.compile("divM*")}).string)
@@ -495,14 +494,6 @@ class Pinnacle():
             my_str = my_str.replace(item,'')
 
         return my_str
-
-    def translate_name(self, long_form, sport):
-        # print long_form
-        for short_form in config["short_names"][sport]:
-            if long_form in config["short_names"][sport][short_form]:
-                return short_form
-
-        return long_form
 
     def convert_decimal_to_american(self,decimal_odds):
         decimal_odds = float(decimal_odds)
@@ -663,8 +654,11 @@ class SportsInteraction():
                 home_info = lines.findAll("li", {'class':"runner"})[1]
                 away_team = away_info.find("span", {'class':"name"}).contents[0]
                 home_team = home_info.find("span", {'class':"name"}).contents[0]
-                away_team = self.translate_name(str(away_team.split(':')[0]).strip(),sport_name)
-                home_team = self.translate_name(str(home_team.split(':')[0]).strip(),sport_name)
+                away_team = translate_name(str(away_team.split(':')[0]).strip(),sport_name)
+                home_team = translate_name(str(home_team.split(':')[0]).strip(),sport_name)
+                if away_team=="unknown" or home_team=="unknown":
+                    print "Team name not recognized. Skipping game ..."
+                    continue
                 try:
                     away_line = float(away_info.find("span", {'class':"price"}).string)
                 except:
@@ -702,14 +696,6 @@ class SportsInteraction():
             my_str = my_str.replace(item,'')
 
         return my_str
-
-    def translate_name(self, long_form, sport):
-        # print long_form
-        for short_form in config["short_names"][sport]:
-            if long_form in config["short_names"][sport][short_form]:
-                return short_form
-
-        return long_form
 
     # given day of the week and time of game, returns datetime in seconds fromtimestamp
     def translate_datetime(self, day, game_time):
@@ -750,6 +736,13 @@ class SportsInteraction():
         print "{0}: {1}".format(self.name, string)
 
 
+def translate_name(long_form, sport):
+    # print long_form
+    for short_form in config["short_names"][sport]:
+        if long_form in config["short_names"][sport][short_form]:
+            return short_form
+
+    return "unknown"
 
 
 def get_day_number(day):
