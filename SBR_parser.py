@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
+import time
 import GameParser
 
 
@@ -42,7 +43,7 @@ class day_parser():
 	def __init__(self,driver):
 		self.date = 0
 		self.driver = driver
-		self.game_parser = GameParser.GameParser(self.date)
+		self.game_parser = GameParser.GameParser(self.driver,self.date)
 		self.games = []
 
 	def parse_day(self,date):
@@ -54,6 +55,8 @@ class day_parser():
 
 		webpage = "http://www.sportsbookreview.com/betting-odds/nhl-hockey/?date={0}".format(self.date)
 		self.driver.get(webpage)
+		print "Pausing for 15 seconds. Close any popups."
+		time.sleep(15)
 
 		print "HTML obtained. Scraping site."
 		soup = BeautifulSoup(self.driver.page_source, "html.parser")
@@ -64,6 +67,7 @@ class day_parser():
 		for cell in game_cells:
 
 			self.games.append(self.game_parser.parse_game(cell))
+			game_counter+=1
 
 		return self.games
 
@@ -71,7 +75,7 @@ class day_parser():
 
 if __name__ == "__main__":
 
-	sbr = SBR_parser(20160205,20160207)
+	sbr = SBR_parser(20160205,20160205)
 	odds = sbr.get_odds()
 
 	print odds
