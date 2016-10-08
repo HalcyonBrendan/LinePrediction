@@ -1,3 +1,6 @@
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 import time
 
@@ -10,6 +13,7 @@ class GameParser():
 		self.game_time = ""
 		self.home_team = ""
 		self.away_team = ""
+		self.line_times = []
 		self.home_lines = []
 		self.away_lines = []
 
@@ -28,8 +32,30 @@ class GameParser():
 		book_html = game_html.findAll("div", {"class": "el-div eventLine-book"})
 
 		for book in book_html:
+			# Click on odds to show line history
+			self.driver.find_element_by_id(book.get('id')).click()
+			#time.sleep(1)
+			try:
+				WebDriverWait(self.driver, 15).until(EC.presence_of_element_located((By.XPATH,'//*[@class="thead-fixed"]')))
+			except:
+				print "Loading line history took too long. Continuing to next book"
+				continue
 
-			element = self.driver.find_element_by_id(book.get('id'))
-			element.click()
-			#actions.click(book).perform()
-			time.sleep(100)
+			window = BeautifulSoup(self.driver.page_source,"html.parser")
+			moneyline_box = window.find("div", {"id": "dialogPop"}).findAll("div", {"class": "info-box"})[1]
+			# Get each odds cell
+			odds_cells = moneyline_box.findAll("tr", {"class": "info_line_alternate1"})
+
+			for cell in odds_cells:
+				self.line_times.append(cell.contents[0].contents[0])
+				self.away_lines.append(cell.contents[1].contents[0])
+				self.home_lines.append(cell.contents[2].contents[0])
+				print cell.contents[0].contents[0]
+				print cell.contents[1].contents[0]
+				print cell.contents[2].contents[0]
+
+
+			# Exit line history
+			self.driver.find_element_by_xpath('//*[@title="close"]').click()
+
+			time.sleep(1)
