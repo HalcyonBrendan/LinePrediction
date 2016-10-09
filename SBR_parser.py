@@ -33,9 +33,20 @@ class SBR_parser():
 		return self.games
 
 	def increment_date(self,date):
-		date += 1
-		return date
-
+		day = date%100
+		if day < 28: return date + 1
+		month = int((date%10000-day)/100)
+		year = int((date-month*100-day)/10000)
+		if month == 2:
+			if day == 28 and year%4 == 0:
+				return date+1
+			else:
+				return int("{0}0301".format(year))
+		if day < 30: return date + 1
+		if day == 30 and month in [1,3,5,7,8,10,12]: return date +1
+		if month == 12: return int("{0}0101".format(year+1))
+		if month < 9: return int("{0}0{1}01".format(year,month+1))
+		return int("{0}{1}01".format(year,month+1))
 
 
 class day_parser():
@@ -43,8 +54,9 @@ class day_parser():
 	def __init__(self,driver):
 		self.date = 0
 		self.driver = driver
-		self.game_parser = GameParser.GameParser(self.driver,self.date)
+		self.game_parser = []
 		self.games = []
+		self.books = []
 
 	def parse_day(self,date):
 
@@ -61,11 +73,19 @@ class day_parser():
 		print "HTML obtained. Scraping site."
 		soup = BeautifulSoup(self.driver.page_source, "html.parser")
 
-		game_cells = soup.findAll("div", {"class": "event-holder holder-complete"})
+		# Get book names (just first ten for now)
+		books_html = soup.find("ul", {"id": "booksCarousel"}).findAll("a", {"id": "bookName"})
+		bookCount = 0
+		for book in books_html:
+			self.books.append(book.contents[0])
+			bookCount+=1
+			if bookCount >= 10: break
 
+		# Parse games
+		game_cells = soup.findAll("div", {"class": "event-holder holder-complete"})
 		game_counter = 0
 		for cell in game_cells:
-
+			self.game_parser = GameParser.GameParser(self.driver,self.date,self.books)
 			self.games.append(self.game_parser.parse_game(cell))
 			game_counter+=1
 
@@ -74,8 +94,7 @@ class day_parser():
 
 
 if __name__ == "__main__":
-
-	sbr = SBR_parser(20160205,20160205)
+	sbr = SBR_parser(20160228,20160301)
 	odds = sbr.get_odds()
 
 	print odds

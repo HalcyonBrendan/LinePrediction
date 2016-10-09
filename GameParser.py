@@ -6,16 +6,18 @@ import time
 
 class GameParser():
 
-	def __init__(self,driver,date):
+	def __init__(self,driver,date,books):
 
 		self.driver = driver
 		self.date = date
 		self.game_time = ""
 		self.home_team = ""
 		self.away_team = ""
+		self.books = books
 		self.line_times = []
 		self.home_lines = []
 		self.away_lines = []
+		self.game = {}
 
 	def parse_game(self,game_html):
 
@@ -31,6 +33,7 @@ class GameParser():
 
 		book_html = game_html.findAll("div", {"class": "el-div eventLine-book"})
 
+		bookCount = 0
 		for book in book_html:
 			# Click on odds to show line history
 			self.driver.find_element_by_id(book.get('id')).click()
@@ -46,16 +49,23 @@ class GameParser():
 			# Get each odds cell
 			odds_cells = moneyline_box.findAll("tr", {"class": "info_line_alternate1"})
 
+			self.line_times.append([])
+			self.away_lines.append([])
+			self.home_lines.append([])
 			for cell in odds_cells:
-				self.line_times.append(cell.contents[0].contents[0])
-				self.away_lines.append(cell.contents[1].contents[0])
-				self.home_lines.append(cell.contents[2].contents[0])
-				print cell.contents[0].contents[0]
-				print cell.contents[1].contents[0]
-				print cell.contents[2].contents[0]
+				self.line_times[bookCount].append(cell.contents[0].contents[0].strip())
+				self.away_lines[bookCount].append(cell.contents[1].contents[0].strip())
+				self.home_lines[bookCount].append(cell.contents[2].contents[0].strip())
+				print cell.contents[0].contents[0].strip()
+				print cell.contents[1].contents[0].strip()
+				print cell.contents[2].contents[0].strip()
 
+			bookCount += 1
 
 			# Exit line history
 			self.driver.find_element_by_xpath('//*[@title="close"]').click()
 
-			time.sleep(1)
+			time.sleep(0.5)
+
+		game = {"date": self.date, "time": self.game_time, "away_team": self.away_team, "home_team": self.home_team, "books": self.books, "line_times": self.line_times, "away_lines": self.away_lines, "home_lines": self.home_lines}
+		return game
