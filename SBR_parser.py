@@ -14,7 +14,7 @@ class SBR_parser():
 		self.day_parser = day_parser(self.driver)
 		self.start_date = start_date
 		self.end_date = end_date
-		self.games = []
+		#self.games = []
 
 
 	def get_odds(self):
@@ -26,11 +26,11 @@ class SBR_parser():
 		while date <= self.end_date:
 
 			print "Getting odds data for ", date
-			self.games.append(self.day_parser.parse_day(date))
-
+			#self.games.append(self.day_parser.parse_day(date))
+			day_games = self.day_parser.parse_day(date)
 			date = self.increment_date(date)
-
-		return self.games
+			yield day_games
+		#return self.games
 
 	def increment_date(self,date):
 		day = date%100
