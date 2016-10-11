@@ -14,7 +14,6 @@ class BettingDB():
     def execute_command(self, query_string):
         print "{}\n".format(query_string)
         self.cursor.execute(query_string)
-
         self.db.commit()
 
     def execute_query(self, query_string):

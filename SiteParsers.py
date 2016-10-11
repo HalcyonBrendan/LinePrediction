@@ -741,7 +741,6 @@ def translate_name(long_form, sport):
     for short_form in config["short_names"][sport]:
         if long_form in config["short_names"][sport][short_form]:
             return short_form
-
     return "unknown"
 
 

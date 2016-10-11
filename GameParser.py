@@ -56,9 +56,9 @@ class GameParser():
 				self.line_times[bookCount].append(cell.contents[0].contents[0].strip())
 				self.away_lines[bookCount].append(cell.contents[1].contents[0].strip())
 				self.home_lines[bookCount].append(cell.contents[2].contents[0].strip())
-				print cell.contents[0].contents[0].strip()
-				print cell.contents[1].contents[0].strip()
-				print cell.contents[2].contents[0].strip()
+				#print cell.contents[0].contents[0].strip()
+				#print cell.contents[1].contents[0].strip()
+				#print cell.contents[2].contents[0].strip()
 
 			bookCount += 1
 
