@@ -35,18 +35,22 @@ class HistOddsDB():
 	def add_team_odds_to_DB(self,game_id,team,opponent,books,game_time,game_date,odds,opponent_odds,poll_times):
 	
 		gameTime = self.translate_datetime(game_date,game_time,1)
-		book_counter = 0
+		book_counter = -1
 		for book in books:
-			if len(odds[book_counter])==0: continue
-			for odd_counter in range(0,len(odds[book_counter])):
-				odd = convert_odds(int(odds[book_counter][odd_counter]),"american","decimal")
-				opponentOdd = convert_odds(int(opponent_odds[book_counter][odd_counter]),"american","decimal")
+			book_counter += 1
+			if book == "betcris": continue
+			for odd_counter in range(0,max(len(odds[book_counter]),len(opponent_odds[book_counter]))):
+				try:
+					odd = convert_odds(int(odds[book_counter][odd_counter]),"american","decimal")
+					opponentOdd = convert_odds(int(opponent_odds[book_counter][odd_counter]),"american","decimal")
+				except:
+					print "Problem adding odds to DB. Continuing..."
+					continue
 				pollTime = self.translate_datetime(game_date,poll_times[book_counter][odd_counter],2)
 				# Construct query for adding game, then add it
-				query_string = """INSERT INTO Moneylines{0} (gameID,date,pollTime,gameTime,team,odds,opponent,opponentOdds,bookName) VALUES ({1},{2},{3},{4},\'{5}\',{6},\'{7}\',{8},\'{9}\');""".format(self.season,game_id,game_date,int(pollTime),int(gameTime),team,odd,opponent,opponentOdd,book)
+				query_string = """INSERT INTO Moneylines{0} (gameID,date,pollTime,gameTime,team,odds,opponent,opponentOdds,bookName) VALUES ({1},{2},{3},{4},\'{5}\',{6},\'{7}\',{8},\'{9}\');""".format(self.season,game_id,game_date,int(pollTime),int(gameTime),team,odd,opponent,opponentOdd,translate_name(book,"books"))
 				print query_string
 				self.execute_command(query_string)
-			book_counter += 1
 		return 0
 
 	def get_game_id(self,home_team,away_team,date):
@@ -71,9 +75,10 @@ class HistOddsDB():
 			return time_in_secs
 		# in case of SBR poll time
 		elif option == 2:
-			day = event_date%100 # for temporary use to get month and year
+			day = event_date%100 # for temporary use to get year
 			month = int((event_date%10000-day)/100)
 			year = int((event_date-month-day)/10000)
+			month = int(event_time[0:2])
 			day = int(event_time[3:5])
 			am_or_pm = str(event_time[-2:])
 			hour = (int(event_time[6:8])-3)%12+12*(am_or_pm=='PM') # Convert to PT

@@ -52,8 +52,8 @@ if __name__ == "__main__":
 		end_date = 20120615
 
 	#temp
-	#start_date = 20160228
-	#end_date = 20160228
+	start_date = 20151101
+	end_date = 20160410
 
 	odds = HistOddsScraper(start_date,end_date,season)
 	odds.run()

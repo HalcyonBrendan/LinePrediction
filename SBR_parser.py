@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
-import time
+import time, re
 import GameParser
 
 
@@ -20,25 +20,25 @@ class SBR_parser():
 	def get_odds(self):
 		print "Parsing Sportsbook Review for historical NHL odds from ", self.start_date, " to ", self.end_date
 
-		date = self.start_date
-		while date <= self.end_date:
-			print "Getting odds data for ", date
-			day_games = self.day_parser.parse_day(date)
-			date = self.increment_date(date)
+		curr_date = self.start_date
+		while curr_date <= self.end_date:
+			print "Getting odds data for ", curr_date
+			day_games = self.day_parser.parse_day(curr_date)
+			curr_date = self.increment_date(curr_date)
 			yield day_games
 
-	def increment_date(self,date):
-		day = date%100
-		if day < 28: return date + 1
-		month = int((date%10000-day)/100)
-		year = int((date-month*100-day)/10000)
+	def increment_date(self,curr_date):
+		day = curr_date%100
+		if day < 28: return curr_date + 1
+		month = int((curr_date%10000-day)/100)
+		year = int((curr_date-month*100-day)/10000)
 		if month == 2:
 			if day == 28 and year%4 == 0:
-				return date+1
+				return curr_date+1
 			else:
 				return int("{0}0301".format(year))
-		if day < 30: return date + 1
-		if day == 30 and month in [1,3,5,7,8,10,12]: return date +1
+		if day < 30: return curr_date + 1
+		if day == 30 and month in [1,3,5,7,8,10,12]: return curr_date +1
 		if month == 12: return int("{0}0101".format(year+1))
 		if month < 9: return int("{0}0{1}01".format(year,month+1))
 		return int("{0}{1}01".format(year,month+1))
@@ -53,10 +53,11 @@ class day_parser():
 		self.games = []
 		self.books = []
 
-	def parse_day(self,date):
+	def parse_day(self,curr_date):
 
-		self.date = date
+		self.date = curr_date
 		self.games = []
+		self.books = []
 
 		print "Obtaining webpage for date: ", self.date
 
@@ -76,10 +77,8 @@ class day_parser():
 			if bookCount >= 10: break
 
 		# Parse games
-		game_cells = soup.findAll("div", {"class": "event-holder holder-complete"})
 		# Sometimes cells have different class name
-		if len(game_cells) == 0:
-			game_cells = soup.findAll("div", {"class": "event-holder holder-scheduled"})
+		game_cells = soup.findAll("div", {"class": re.compile("event-holder*")})
 		game_counter = 0
 		for cell in game_cells:
 			self.game_parser = GameParser.GameParser(self.driver,self.date,self.books)

@@ -21,19 +21,21 @@ class GameParser():
 
 	def parse_game(self,game_html):
 		self.game_time = game_html.find("div", {"class": "el-div eventLine-time"}).find("div", {"class": "eventLine-book-value"}).contents[0]
-		print "Game time: ", self.game_time
+		#print "Game time: ", self.game_time
 
 		team_names = game_html.findAll("span", {"class": "team-name"}) 
 		self.away_team = team_names[0].contents[0].contents[0]
-		print "Away team: ", self.away_team
+		#print "Away team: ", self.away_team
 		self.home_team = team_names[1].contents[0].contents[0]
-		print "Home team: ", self.home_team
+		#print "Home team: ", self.home_team
 
 
 		book_html = game_html.findAll("div", {"class": "el-div eventLine-book"})
 
-		bookCount = 0
+		bookCount = -1
 		for book in book_html:
+			bookCount += 1
+			if self.books[bookCount] == 'betcris': continue
 			# Click on odds to show line history
 			self.driver.find_element_by_id(book.get('id')).click()
 			#time.sleep(1)
@@ -58,9 +60,6 @@ class GameParser():
 				#print cell.contents[0].contents[0].strip()
 				#print cell.contents[1].contents[0].strip()
 				#print cell.contents[2].contents[0].strip()
-
-			bookCount += 1
-
 			# Exit line history
 			self.driver.find_element_by_xpath('//*[@title="close"]').click()
 
