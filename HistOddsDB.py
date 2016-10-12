@@ -25,9 +25,15 @@ class HistOddsDB():
 		if not self.moneylines_table_exists():
 			print "Moneylines{} does not exist. Creating table!".format(self.season)
 			self.create_moneylines_table()
-		game["id"] = self.get_game_id(translate_name(game["home_team"],self.sport),translate_name(game["away_team"],self.sport),game["date"])
-		add_home = self.add_team_odds_to_DB(game["id"],translate_name(game["home_team"],self.sport),translate_name(game["away_team"],self.sport),game["books"],game["time"],game["date"],game["home_lines"],game["away_lines"],game["line_times"])
-		add_away = self.add_team_odds_to_DB(game["id"],translate_name(game["away_team"],self.sport),translate_name(game["home_team"],self.sport),game["books"],game["time"],game["date"],game["away_lines"],game["home_lines"],game["line_times"])
+		game["home_team"] = translate_name(game["home_team"],self.sport)
+		game["away_team"] = translate_name(game["away_team"],self.sport)
+		if game["home_team"] == "unknown" or game["away_team"] == "unknown":
+			print "Unknown team on date: ", game["date"]
+			print "Continuing to next game."
+			return 1
+		game["id"] = self.get_game_id(game["home_team"],game["away_team"],game["date"])
+		#add_home = self.add_team_odds_to_DB(game["id"],game["home_team"],game["away_team"],game["books"],game["time"],game["date"],game["home_lines"],game["away_lines"],game["line_times"])
+		#add_away = self.add_team_odds_to_DB(game["id"],game["away_team"],game["home_team"],game["books"],game["time"],game["date"],game["away_lines"],game["home_lines"],game["line_times"])
 		if add_home or add_away:
 			return 1
 		return 0
@@ -57,6 +63,7 @@ class HistOddsDB():
 		# Query DB for game matching the given parameters
 		query_string = "SELECT gameID FROM Games{0} WHERE team=\'{1}\' AND opponent=\'{2}\' AND date={3};".format(self.season,home_team,away_team,date)
 		game_id = self.execute_query(query_string)
+		print game_id
 		return int(game_id[0][0])
 
 	def translate_datetime(self, event_date, event_time, option):

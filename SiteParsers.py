@@ -253,7 +253,11 @@ class FiveDimes():
                     if any(i.isdigit() for i in away_team) or ("Series" in away_team) or ("goes" in away_team):
                         continue
 
-                    away_line = float(re.split(' ',str(elements[4].getText().replace(u'\xa0', u'')))[0])
+                    try:
+                        away_line = float(re.split(' ',str(elements[4].getText().replace(u'\xa0', u'')))[0])
+                    except:
+                        print "Problem parsing away line for team ", away_team, ". Continuing."
+                        continue
 
                     elements = home_cells[i].findAll('td')
 
@@ -276,8 +280,11 @@ class FiveDimes():
 
                     if any(i.isdigit() for i in home_team) or any(rem in home_team for rem in config["banned"]):
                         continue
-
-                    home_line = float(re.split(' ',str(elements[4].getText().replace(u'\xa0', u'')))[0])
+                    try:
+                        home_line = float(re.split(' ',str(elements[4].getText().replace(u'\xa0', u'')))[0])
+                    except:
+                        print "Problem parsing away line for team ", away_team, ". Continuing."
+                        continue
 
                     poll_time = int(time.time())
 
