@@ -6,12 +6,13 @@ import HistOddsDB
 
 class HistOddsScraper():
 
-	def __init__(self,start_date,end_date):
+	def __init__(self,start_date,end_date,season):
 
+		self.season = season
 		self.start_date = start_date
 		self.end_date = end_date
 		self.parser = SBR_parser.SBR_parser(self.start_date,self.end_date)
-		self.histDB = HistOddsDB.HistOddsDB("NHL")
+		self.histDB = HistOddsDB.HistOddsDB("NHL",self.season)
 
 	def run(self):
 
@@ -22,18 +23,37 @@ class HistOddsScraper():
 				print "Adding game to DB: "
 				#print game
 				add_to_DB = self.histDB.add_game_to_DB(game)
-				if add_to_DB == 1:
+				if add_to_DB == 0:
 					print "Game added successfully."
 				else:
 					print "Problem adding game:"
 					print add_to_DB
 
-				break
-
 
 if __name__ == "__main__":
 
-	start_date = 20160224
-	end_date = 20160224
-	odds = HistOddsScraper(start_date,end_date)
+	# SET THIS:
+	season = 20152016
+
+	if season == 20152016:
+		start_date = 20151007
+		end_date = 20160410
+	elif season == 20142015:
+		start_date = 20141001
+		end_date = 20150615
+	elif season == 20132014:
+		start_date = 20131001
+		end_date = 20140615
+	elif season == 20122013:
+		start_date = 20121001
+		end_date = 20130615
+	elif season == 20112012:
+		start_date = 20111001
+		end_date = 20120615
+
+	#temp
+	#start_date = 20160228
+	#end_date = 20160228
+
+	odds = HistOddsScraper(start_date,end_date,season)
 	odds.run()

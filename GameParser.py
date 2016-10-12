@@ -20,7 +20,6 @@ class GameParser():
 		self.game = {}
 
 	def parse_game(self,game_html):
-
 		self.game_time = game_html.find("div", {"class": "el-div eventLine-time"}).find("div", {"class": "eventLine-book-value"}).contents[0]
 		print "Game time: ", self.game_time
 
@@ -64,8 +63,6 @@ class GameParser():
 
 			# Exit line history
 			self.driver.find_element_by_xpath('//*[@title="close"]').click()
-
-			time.sleep(0.5)
 
 		game = {"date": self.date, "time": self.game_time, "away_team": self.away_team, "home_team": self.home_team, "books": self.books, "line_times": self.line_times, "away_lines": self.away_lines, "home_lines": self.home_lines}
 		return game
