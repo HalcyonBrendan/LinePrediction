@@ -39,21 +39,21 @@ if __name__ == "__main__":
 		start_date = 20151007
 		end_date = 20160410
 	elif season == 20142015:
-		start_date = 20141001
-		end_date = 20150615
+		start_date = 20141008
+		end_date = 20150411
 	elif season == 20132014:
 		start_date = 20131001
-		end_date = 20140615
+		end_date = 20140413
 	elif season == 20122013:
-		start_date = 20121001
-		end_date = 20130615
+		start_date = 20130119
+		end_date = 20130427
 	elif season == 20112012:
-		start_date = 20111001
-		end_date = 20120615
+		start_date = 20111006
+		end_date = 20120407
 
 	#temp
-	start_date = 20151101
-	end_date = 20160410
+	#start_date = 20151101
+	#end_date = 20160410
 
 	odds = HistOddsScraper(start_date,end_date,season)
 	odds.run()
