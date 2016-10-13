@@ -32,8 +32,12 @@ class HistOddsDB():
 			print "Continuing to next game."
 			return 1
 		game["id"] = self.get_game_id(game["home_team"],game["away_team"],game["date"])
-		#add_home = self.add_team_odds_to_DB(game["id"],game["home_team"],game["away_team"],game["books"],game["time"],game["date"],game["home_lines"],game["away_lines"],game["line_times"])
-		#add_away = self.add_team_odds_to_DB(game["id"],game["away_team"],game["home_team"],game["books"],game["time"],game["date"],game["away_lines"],game["home_lines"],game["line_times"])
+		if game["id"] == -1:
+			print "Could not find id for game on ", game["date"], " between ", game["home_team"], " and ", game["away_team"]
+			print "Continuing to next game."
+			return 1
+		add_home = self.add_team_odds_to_DB(game["id"],game["home_team"],game["away_team"],game["books"],game["time"],game["date"],game["home_lines"],game["away_lines"],game["line_times"])
+		add_away = self.add_team_odds_to_DB(game["id"],game["away_team"],game["home_team"],game["books"],game["time"],game["date"],game["away_lines"],game["home_lines"],game["line_times"])
 		if add_home or add_away:
 			return 1
 		return 0
@@ -63,8 +67,11 @@ class HistOddsDB():
 		# Query DB for game matching the given parameters
 		query_string = "SELECT gameID FROM Games{0} WHERE team=\'{1}\' AND opponent=\'{2}\' AND date={3};".format(self.season,home_team,away_team,date)
 		game_id = self.execute_query(query_string)
-		print game_id
-		return int(game_id[0][0])
+		try:
+			gid = int(game_id[0][0])
+		except:
+			gid = -1
+		return gid
 
 	def translate_datetime(self, event_date, event_time, option):
 		# in case of simply finding game time

@@ -2,8 +2,6 @@ import re, time, sys, datetime, math, signal, random
 import SBR_parser
 import HistOddsDB
 
-
-
 class HistOddsScraper():
 
 	def __init__(self,start_date,end_date,season):
@@ -27,13 +25,11 @@ class HistOddsScraper():
 					print "Game added successfully."
 				else:
 					print "Problem adding game:"
-					print add_to_DB
-
 
 if __name__ == "__main__":
 
 	# SET THIS:
-	season = 20152016
+	season = 20142015
 
 	if season == 20152016:
 		start_date = 20151007
@@ -52,8 +48,8 @@ if __name__ == "__main__":
 		end_date = 20120407
 
 	#temp
-	start_date = 20151227
-	end_date = 20160410
+	#start_date = 20141122
+	#end_date = 20150411
 
 	odds = HistOddsScraper(start_date,end_date,season)
 	odds.run()
