@@ -29,7 +29,7 @@ class HistOddsScraper():
 if __name__ == "__main__":
 
 	# SET THIS:
-	season = 20142015
+	season = 20132014
 
 	if season == 20152016:
 		start_date = 20151007
