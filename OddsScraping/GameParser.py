@@ -32,12 +32,18 @@ class GameParser():
 
 		book_html = game_html.findAll("div", {"class": "el-div eventLine-book"})
 
+		broken_game_flag = 0
 		bookCount = -1
 		for book in book_html:
 			bookCount += 1
 			if self.books[bookCount] == 'betcris': continue
 			# Click on odds to show line history
-			self.driver.find_element_by_id(book.get('id')).click()
+			try:
+				self.driver.find_element_by_id(book.get('id')).click()
+			except:
+				print "Could not get line histories for this game. Continuing to next game."
+				broken_game_flag = 1
+				break
 			#time.sleep(1)
 			try:
 				WebDriverWait(self.driver, 15).until(EC.presence_of_element_located((By.XPATH,'//*[@class="thead-fixed"]')))
@@ -61,7 +67,12 @@ class GameParser():
 				#print cell.contents[1].contents[0].strip()
 				#print cell.contents[2].contents[0].strip()
 			# Exit line history
-			self.driver.find_element_by_xpath('//*[@title="close"]').click()
+			try:
+				self.driver.find_element_by_xpath('//*[@title="close"]').click()
+			except:
+				continue
+
+		if broken_game_flag: return -1
 
 		game = {"date": self.date, "time": self.game_time, "away_team": self.away_team, "home_team": self.home_team, "books": self.books, "line_times": self.line_times, "away_lines": self.away_lines, "home_lines": self.home_lines}
 		return game

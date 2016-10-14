@@ -47,9 +47,9 @@ if __name__ == "__main__":
 		start_date = 20111006
 		end_date = 20120407
 
-	#temp
-	#start_date = 20141122
-	#end_date = 20150411
+	# Uncomment if you need to restart mid-season
+	#start_date = 20140331
+	#end_date = 20140413
 
 	odds = HistOddsScraper(start_date,end_date,season)
 	odds.run()

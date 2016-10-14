@@ -79,11 +79,11 @@ class day_parser():
 		# Parse games
 		# Sometimes cells have different class name
 		game_cells = soup.findAll("div", {"class": re.compile("event-holder*")})
-		game_counter = 0
 		for cell in game_cells:
 			self.game_parser = GameParser.GameParser(self.driver,self.date,self.books)
-			self.games.append(self.game_parser.parse_game(cell))
-			game_counter+=1
+			game = self.game_parser.parse_game(cell)
+			if game == -1: continue
+			self.games.append(game)
 
 		return self.games
 
