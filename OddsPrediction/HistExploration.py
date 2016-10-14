@@ -5,7 +5,7 @@ from config import CONFIG as config
 import OddsDB
 
 
-db = OddsDB.OddsDB()
+db = OddsDB.OddsDB("hockey")
 
 
 ###########################################################
