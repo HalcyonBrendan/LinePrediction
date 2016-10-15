@@ -2,7 +2,7 @@ import MySQLdb
 from config import CONFIG as config
 
 
-class OddsDB():
+class StatsDB():
 
 	def __init__(self,sport):
 		self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",user="root", db="halcyonnhl")

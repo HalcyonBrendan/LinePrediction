@@ -2,10 +2,10 @@ import MySQLdb, re, time, sys, datetime, math, signal
 import matplotlib.pyplot as plt
 import numpy as np
 from config import CONFIG as config
-import OddsDB
+import StatsDB
 
 
-db = OddsDB.OddsDB("hockey")
+db = StatsDB.StatsDB("hockey")
 
 
 ###########################################################
