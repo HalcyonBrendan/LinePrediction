@@ -18,9 +18,11 @@ class PredictLines():
 
 	def run(self):
 		book = "Pinnacle"
+		line_predictions = {}
 		teamCount = 0
 		for short_form in config["short_names"]["hockey"]:
 			team = str(short_form)
+			print "Predicting lines for ", team
 			gid_list = self.sr.get_game_ids(team,self.train_start_date,self.end_date)
 			gid_start = self.sr.get_game_ids(team,self.start_date,0)
 
@@ -29,9 +31,10 @@ class PredictLines():
 			team_line_stats = self.sr.get_line_stats(team,"team",gid_list,book)
 			opp_line_stats = self.sr.get_line_stats(team,"opp",gid_list,book)
 
-			line_predictions = self.lp.predict(self.start_date,self.end_date,team_stats,team_line_stats,opp_stats,opp_line_stats)
+			# Make predictions
+			line_predictions[team] = self.lp.predict(gid_start,team_stats,team_line_stats,opp_stats,opp_line_stats)
 
-			break
+		print line_predictions
 
 
 if __name__ == "__main__":
@@ -59,8 +62,8 @@ if __name__ == "__main__":
 		end_date = 20120407
 
 	# Comment out below two lines if you want to run full season
-	#start_date = 20150201
-	#end_date = 20150210
+	#start_date = 20141127
+	#end_date = 20141227
 
 	pl = PredictLines(season,train_start_date,start_date,end_date)
 	pl.run()
