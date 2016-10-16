@@ -20,6 +20,7 @@ class PredictLines():
 		book = "Pinnacle"
 		line_predictions = {}
 		teamCount = 0
+		cum_error_vec = np.zeros(6)
 		for short_form in config["short_names"]["hockey"]:
 			team = str(short_form)
 			print "Predicting lines for ", team
@@ -33,9 +34,38 @@ class PredictLines():
 
 			# Make predictions
 			line_predictions[team] = self.lp.predict(gid_start,team_stats,team_line_stats,opp_stats,opp_line_stats)
+			#print line_predictions[team]
+			# Compute some stats for evaluation
+			error_vec = self.compute_error(line_predictions[team])
+			print "Error vector: ", error_vec
+			cum_error_vec += error_vec
+			print "Abs Pred Err, MS Pred Err, Abs Open Err, MS Open Err, Abs Close Err, MS Close Err"
+			print "Cum. error vector: ", cum_error_vec
 
-		print line_predictions
 
+
+	def compute_error(self,team_predictions):
+		abs_pred_error = 0
+		ms_pred_error = 0
+		abs_open_error = 0
+		ms_open_error = 0
+		abs_close_error = 0
+		ms_close_error = 0
+		for game in team_predictions:
+			ape = abs(game["linePred"]-game["lineMax"])
+			abs_pred_error += ape
+			mpe = ape*ape
+			ms_pred_error += mpe
+			aoe = abs(game["lineOpen"]-game["lineMax"])
+			abs_open_error += aoe
+			moe = aoe*aoe
+			ms_open_error += moe
+			ace = abs(game["lineClose"]-game["lineMax"])
+			abs_close_error += ace
+			mce = ace*ace
+			ms_close_error += mce
+			print game["linePred"], " ", game["lineMax"], " ", game["lineOpen"], " ", game["lineClose"]
+		return np.array([abs_pred_error,ms_pred_error,abs_open_error,ms_open_error,abs_close_error,ms_close_error])
 
 if __name__ == "__main__":
 	season = 20142015
@@ -46,7 +76,7 @@ if __name__ == "__main__":
 		end_date = 20160410
 	elif season == 20142015:
 		train_start_date = 20141028
-		start_date = 20141128
+		start_date = 20141228
 		end_date = 20150411
 	elif season == 20132014:
 		train_start_date = 20131021

@@ -1,6 +1,9 @@
 import re, time, sys, datetime, math, signal
 import numpy as np
 from sklearn import linear_model as lm
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.svm import SVR
+import matplotlib.pyplot as plt
 
 
 class LinePredictor():
@@ -24,7 +27,44 @@ class LinePredictor():
 			test_out = team_line_stats[i,3]
 
 			# Use linear regression to predict max line value
-			predictions.append({"gameID":gid, "linePred":float(self.lin_reg_fit(training_mat,training_out,test_sample)),"lineMax":test_out})
+			predictions.append(
+				{
+					"gameID":gid, 
+					#"linePred":float("{0:.3f}".format(float(self.lin_reg_fit(training_mat,training_out,test_sample)))),
+					#"linePred":float("{0:.3f}".format(float(self.poly_reg_fit(training_mat,training_out,test_sample)))),
+					"linePred":float("{0:.3f}".format(float(self.svm_lin_reg_fit(training_mat,training_out,test_sample)))),
+					"lineMax":float("{0:.3f}".format(test_out)),
+					"lineOpen":float("{0:.3f}".format(team_line_stats[i,1])),
+					"lineClose":float("{0:.3f}".format(team_line_stats[i,2])),
+					"lineMin":float("{0:.3f}".format(team_line_stats[i,4]))
+				}
+			)
+		# Make some plots for now
+		plt.figure(0)
+		plt.plot(team_stats[:,1],team_line_stats[:,3]-team_line_stats[:,1],'bx')
+		plt.xlabel('Is home')
+		plt.ylabel('Max - Opening Odds')
+		plt.axis([-.5,1.5,-.05,.5])
+
+		plt.figure(1)
+		plt.plot(team_stats[:,2],team_line_stats[:,3]-team_line_stats[:,1],'b^')
+		plt.xlabel('Won last game')
+		plt.ylabel('Max - Opening Odds')
+		plt.axis([-.5,1.5,-.05,.5])
+
+		plt.figure(2)
+		plt.plot(team_stats[:,3],team_line_stats[:,3]-team_line_stats[:,1],'go')
+		plt.xlabel('Win per last four games')
+		plt.ylabel('Max - Opening Odds')
+		plt.axis([-.5,1.5,-.05,.5])
+
+		plt.figure(3)
+		plt.plot(team_stats[:,4],team_line_stats[:,3]-team_line_stats[:,1],'bv')
+		plt.xlabel('Win per last ten games')
+		plt.ylabel('Max - Opening Odds')
+		plt.axis([-.5,1.5,-.05,.5])
+		plt.show()
+		print "Still going"
 
 		return predictions
 
@@ -44,3 +84,21 @@ class LinePredictor():
 		# predict
 		test_pred = regr.predict(test_sample)
 		return test_pred
+
+	def poly_reg_fit(self,training_mat,training_out,test_sample):
+		poly = PolynomialFeatures(degree=4)
+		X = poly.fit_transform(training_mat)
+		y = poly.fit_transform(test_sample)
+		regr = lm.LinearRegression()
+		# train
+		regr.fit(X,training_out)
+		# predict
+		test_pred = regr.predict(y)
+		return test_pred
+
+	def svm_lin_reg_fit(self,training_mat,training_out,test_sample):
+		svr_lin = SVR(kernel='poly', C=5, degree=2)
+		test_pred = svr_lin.fit(training_mat,training_out).predict(test_sample)
+		return test_pred
+
+
