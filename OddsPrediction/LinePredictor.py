@@ -21,24 +21,37 @@ class LinePredictor():
 			if gid < start_id: continue
 
 			training_mat = self.build_stat_mat(team_stats[:i,1:],team_line_stats[:i,1:],opp_stats[:i,1:],opp_line_stats[:i,1:])
-			training_out = team_line_stats[:i,3]
+			training_out = team_line_stats[:i,3]-team_line_stats[:i,1]
 
 			test_sample = self.build_stat_mat(team_stats[i:i+1,1:],team_line_stats[i:i+1,1:],opp_stats[i:i+1,1:],opp_line_stats[i:i+1,1:])
-			test_out = team_line_stats[i,3]
+			test_out = team_line_stats[i,3]-team_line_stats[i,1]
+
+			#test_pred = float(self.lin_reg_fit(training_mat,training_out,test_sample))
+			#test_pred = float(self.poly_reg_fit(training_mat,training_out,test_sample))
+			test_pred = float(self.svm_lin_reg_fit(training_mat,training_out,test_sample))
+			test_pred = max(0,test_pred)
+
+			print "Outcomes:"
+			#print training_mat
+			#print training_out
+			#print test_sample
+			print test_out
+			print test_pred
 
 			# Use linear regression to predict max line value
 			predictions.append(
 				{
 					"gameID":gid, 
-					#"linePred":float("{0:.3f}".format(float(self.lin_reg_fit(training_mat,training_out,test_sample)))),
-					#"linePred":float("{0:.3f}".format(float(self.poly_reg_fit(training_mat,training_out,test_sample)))),
-					"linePred":float("{0:.3f}".format(float(self.svm_lin_reg_fit(training_mat,training_out,test_sample)))),
-					"lineMax":float("{0:.3f}".format(test_out)),
+					"linePred":float("{0:.3f}".format(test_pred+team_line_stats[i,1])),
+					#"linePred":float("{0:.3f}".format()),
+					#"linePred":float("{0:.3f}".format()),
+					"lineMax":float("{0:.3f}".format(team_line_stats[i,3])),
 					"lineOpen":float("{0:.3f}".format(team_line_stats[i,1])),
 					"lineClose":float("{0:.3f}".format(team_line_stats[i,2])),
 					"lineMin":float("{0:.3f}".format(team_line_stats[i,4]))
 				}
 			)
+		"""
 		# Make some plots for now
 		plt.figure(0)
 		plt.plot(team_stats[:,1],team_line_stats[:,3]-team_line_stats[:,1],'bx')
@@ -65,7 +78,7 @@ class LinePredictor():
 		plt.axis([-.5,1.5,-.05,.5])
 		plt.show()
 		print "Still going"
-
+		"""
 		return predictions
 
 
@@ -97,7 +110,7 @@ class LinePredictor():
 		return test_pred
 
 	def svm_lin_reg_fit(self,training_mat,training_out,test_sample):
-		svr_lin = SVR(kernel='poly', C=5, degree=2)
+		svr_lin = SVR(kernel='rbf', C=50, gamma=0.01)
 		test_pred = svr_lin.fit(training_mat,training_out).predict(test_sample)
 		return test_pred
 
