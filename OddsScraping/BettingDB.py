@@ -1,4 +1,3 @@
-
 import MySQLdb, datetime
 from config import CONFIG as config
 import uuid, time

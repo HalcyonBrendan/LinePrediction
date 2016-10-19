@@ -2,7 +2,7 @@
 import re, time, sys, datetime, math, signal
 import HTML_parser
 import Emailer
-import BettingDB
+import BettingDB, ThresholdCheck
 import random
 import json
 
@@ -59,10 +59,9 @@ class OddsComparer():
                     game_id = self.bets_DB.get_game_id(game)
                     self.bets_DB.add_moneyline(game,game_id)
 
-                    betting_result = self.compare_moneylines(game_id,game)
-
-                    if betting_result:
-                        results.append(betting_result)
+                    #betting_result = self.compare_moneylines(game_id,game)
+                    #if betting_result:
+                    #    results.append(betting_result)
 
                     """
                     end of area where you put your code
@@ -70,6 +69,10 @@ class OddsComparer():
 
             # if results:
             #     self.emailer.send_email(results)
+
+            # Run code to check lines against initial threshold
+            threshCheck = ThresholdCheck.ThresholdCheck()
+            threshCheck.run()
 
             time_to_sleep = int(self.get_poisson_arrival_time(1/float(20*60)))
             print "sleeping {} seconds".format(time_to_sleep)
