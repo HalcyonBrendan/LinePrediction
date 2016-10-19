@@ -35,13 +35,13 @@ class HistOddsDB():
 			print "Could not find id for game on ", game["date"], " between ", game["home_team"], " and ", game["away_team"]
 			print "Continuing to next game."
 			return 1
-		add_home = self.add_team_odds_to_DB(game["id"],game["home_team"],game["away_team"],game["books"],game["time"],game["date"],game["home_lines"],game["away_lines"],game["line_times"])
-		add_away = self.add_team_odds_to_DB(game["id"],game["away_team"],game["home_team"],game["books"],game["time"],game["date"],game["away_lines"],game["home_lines"],game["line_times"])
+		add_home = self.add_team_odds_to_DB(game["id"],game["home_team"],game["home_score"],game["away_team"],game["away_score"],game["books"],game["time"],game["date"],game["home_lines"],game["away_lines"],game["line_times"])
+		add_away = self.add_team_odds_to_DB(game["id"],game["away_team"],game["away_score"],game["home_team"],game["home_score"],game["books"],game["time"],game["date"],game["away_lines"],game["home_lines"],game["line_times"])
 		if add_home or add_away:
 			return 1
 		return 0
 
-	def add_team_odds_to_DB(self,game_id,team,opponent,books,game_time,game_date,odds,opponent_odds,poll_times):
+	def add_team_odds_to_DB(self,game_id,team,teamScore,opponent,opponentScore,books,game_time,game_date,odds,opponent_odds,poll_times):
 	
 		gameTime = self.translate_datetime(game_date,game_time,1)
 		book_counter = -1
@@ -57,14 +57,14 @@ class HistOddsDB():
 					continue
 				pollTime = self.translate_datetime(game_date,poll_times[book_counter][odd_counter],2)
 				# Construct query for adding game, then add it
-				query_string = """INSERT INTO {0}_Moneylines{1} (gameID,date,pollTime,gameTime,team,odds,opponent,opponentOdds,bookName) VALUES ({2},{3},{4},{5},\'{6}\',{7},\'{8}\',{9},\'{10}\');""".format(self.league,self.season,game_id,game_date,int(pollTime),int(gameTime),team,odd,opponent,opponentOdd,translate_name(book,"books"))
+				query_string = """INSERT INTO {0}_Moneylines{1} (gameID,date,pollTime,gameTime,team,teamScore,odds,opponent,opponentScore,opponentOdds,bookName) VALUES ({2},{3},{4},{5},\'{6}\',{7},{8},\'{9}\',{10},{11},\'{12}\');""".format(self.league,self.season,game_id,game_date,int(pollTime),int(gameTime),team,teamScore,odd,opponent,opponentScore,opponentOdd,translate_name(book,"books"))
 				print query_string
 				self.execute_command(query_string)
 		return 0
 
 	def get_game_id(self,home_team,away_team,date):
 		# Query DB for game matching the given parameters
-		query_string = "SELECT gameID FROM Games{0} WHERE team=\'{1}\' AND opponent=\'{2}\' AND date={3};".format(self.season,home_team,away_team,date)
+		query_string = "SELECT gameID FROM {0}_Moneylines{1} WHERE team=\'{2}\' AND opponent=\'{3}\' AND date={4};".format(self.league,self.season,home_team,away_team,date)
 		game_id = self.execute_query(query_string)
 		try:
 			gid = int(game_id[0][0])
@@ -103,7 +103,7 @@ class HistOddsDB():
 			return time_in_secs
 
 	def create_moneylines_table(self):
-		query_string = """CREATE TABLE {0}_Moneylines{1} (gameID INT, date INT, pollTime INT, gameTime INT, team TEXT, odds DOUBLE(8,4), opponent TEXT, opponentOdds DOUBLE(8,4), bookName TEXT)""".format(self.league,self.season)
+		query_string = """CREATE TABLE {0}_Moneylines{1} (gameID INT, date INT, pollTime INT, gameTime INT, team TEXT, teamScore INT, odds DOUBLE(8,4), opponent TEXT, opponentScore INT, opponentOdds DOUBLE(8,4), bookName TEXT)""".format(self.league,self.season)
 		self.execute_command(query_string)
 
 	def moneylines_table_exists(self):

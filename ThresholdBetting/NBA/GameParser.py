@@ -37,10 +37,10 @@ class GameParser():
 			team_scores = score_content.findAll("div", {"class": "score-periods"})
 			away_score = int(team_scores[0].find("span", {"class": "current-score"}).contents[0])
 			home_score = int(team_scores[1].find("span", {"class": "current-score"}).contents[0])
-			print away_score, " ", home_score
+			#print away_score, " ", home_score
 
 
-			time.sleep(15)
+			#time.sleep(15)
 
 
 
@@ -49,32 +49,31 @@ class GameParser():
 		broken_game_flag = 0
 		bookCount = -1
 		for book in book_html:
+			self.line_times.append([])
+			self.away_lines.append([])
+			self.home_lines.append([])
 			bookCount += 1
-			print self.books[bookCount]
 			if self.books[bookCount] == 'betcris': continue
 			# Click on odds to show line history
 			try:
 				self.driver.find_element_by_id(book.find("div", {"class": "eventLine-book-value"}).get('id')).click()
 			except Exception as e:
-				print e
-				print "Could not get line histories for this game. Continuing to next game."
-				broken_game_flag = 1
-				break
+				#print e
+				print "Could not get line histories for ", self.books[bookCount], ". Continuing to next book."
+				#broken_game_flag = 1
+				continue
 			#time.sleep(1)
 			try:
 				WebDriverWait(self.driver, 15).until(EC.presence_of_element_located((By.XPATH,'//*[@class="thead-fixed"]')))
 			except:
-				print "Loading line history took too long. Continuing to next game"
-				break
+				print "Loading line history took too long. Continuing to next book"
+				continue
 
 			window = BeautifulSoup(self.driver.page_source,"html.parser")
 			moneyline_box = window.find("div", {"id": "dialogPop"}).findAll("div", {"class": "info-box"})[1]
 			# Get each odds cell
 			odds_cells = moneyline_box.findAll("tr", {"class": "info_line_alternate1"})
 
-			self.line_times.append([])
-			self.away_lines.append([])
-			self.home_lines.append([])
 			for cell in odds_cells:
 				self.line_times[bookCount].append(cell.contents[0].contents[0].strip())
 				self.away_lines[bookCount].append(cell.contents[1].contents[0].strip())
@@ -90,5 +89,5 @@ class GameParser():
 
 		if broken_game_flag: return -1
 
-		game = {"date": self.date, "time": self.game_time, "away_team": self.away_team, "home_team": self.home_team, "books": self.books, "line_times": self.line_times, "away_lines": self.away_lines, "home_lines": self.home_lines}
+		game = {"date": self.date, "time": self.game_time, "away_team": self.away_team, "home_team": self.home_team, "away_score": away_score, "home_score": home_score, "books": self.books, "line_times": self.line_times, "away_lines": self.away_lines, "home_lines": self.home_lines}
 		return game

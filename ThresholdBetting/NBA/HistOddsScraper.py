@@ -18,6 +18,7 @@ class HistOddsScraper():
 		day_generator = self.parser.get_odds()
 
 		for day in day_generator:
+			print "WORKING HERE \n\n\n\n"
 			for game in day:
 				print "Adding game to DB: "
 				#print game
