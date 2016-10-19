@@ -5,10 +5,9 @@ from config import CONFIG as config
 class HistOddsDB():
 
 	def __init__(self,league,season):
-		self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",user="root", db="halcyonnhl")
+		self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",user="root", db="halcyonlines")
 		self.cursor = self.db.cursor()
 		self.league = league
-		self.sport = "hockey" #TODO: make everything league based, not sport
 		self.season = season
 
 	def execute_command(self, query_string):
@@ -23,10 +22,10 @@ class HistOddsDB():
 
 	def add_game_to_DB(self,game):
 		if not self.moneylines_table_exists():
-			print "Moneylines{} does not exist. Creating table!".format(self.season)
+			print "{0}_Moneylines{1} does not exist. Creating table!".format(self.league,self.season)
 			self.create_moneylines_table()
-		game["home_team"] = translate_name(game["home_team"],self.sport)
-		game["away_team"] = translate_name(game["away_team"],self.sport)
+		game["home_team"] = translate_name(game["home_team"],self.league)
+		game["away_team"] = translate_name(game["away_team"],self.league)
 		if game["home_team"] == "unknown" or game["away_team"] == "unknown":
 			print "Unknown team on date: ", game["date"]
 			print "Continuing to next game."
@@ -58,7 +57,7 @@ class HistOddsDB():
 					continue
 				pollTime = self.translate_datetime(game_date,poll_times[book_counter][odd_counter],2)
 				# Construct query for adding game, then add it
-				query_string = """INSERT INTO Moneylines{0} (gameID,date,pollTime,gameTime,team,odds,opponent,opponentOdds,bookName) VALUES ({1},{2},{3},{4},\'{5}\',{6},\'{7}\',{8},\'{9}\');""".format(self.season,game_id,game_date,int(pollTime),int(gameTime),team,odd,opponent,opponentOdd,translate_name(book,"books"))
+				query_string = """INSERT INTO {0}_Moneylines{1} (gameID,date,pollTime,gameTime,team,odds,opponent,opponentOdds,bookName) VALUES ({2},{3},{4},{5},\'{6}\',{7},\'{8}\',{9},\'{10}\');""".format(self.league,self.season,game_id,game_date,int(pollTime),int(gameTime),team,odd,opponent,opponentOdd,translate_name(book,"books"))
 				print query_string
 				self.execute_command(query_string)
 		return 0
@@ -104,19 +103,19 @@ class HistOddsDB():
 			return time_in_secs
 
 	def create_moneylines_table(self):
-		query_string = """CREATE TABLE Moneylines{} (gameID INT, date INT, pollTime INT, gameTime INT, team TEXT, odds DOUBLE(8,4), opponent TEXT, opponentOdds DOUBLE(8,4), bookName TEXT)""".format(self.season)
+		query_string = """CREATE TABLE {0}_Moneylines{1} (gameID INT, date INT, pollTime INT, gameTime INT, team TEXT, odds DOUBLE(8,4), opponent TEXT, opponentOdds DOUBLE(8,4), bookName TEXT)""".format(self.league,self.season)
 		self.execute_command(query_string)
 
 	def moneylines_table_exists(self):
-		stmt = "SHOW TABLES LIKE \'Moneylines{}\'".format(self.season)
+		stmt = "SHOW TABLES LIKE \'{0}_Moneylines{1}\'".format(self.league,self.season)
 		self.cursor.execute(stmt)
 		result = self.cursor.fetchone()
 		if result: return True
 		else: return False
 
-def translate_name(long_form, sport):
-	for short_form in config["short_names"][sport]:
-		if long_form in config["short_names"][sport][short_form]:
+def translate_name(long_form, league):
+	for short_form in config["short_names"][league]:
+		if long_form in config["short_names"][league][short_form]:
 			return short_form
 	return "unknown"
 

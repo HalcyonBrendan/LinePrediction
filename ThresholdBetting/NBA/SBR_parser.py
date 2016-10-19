@@ -8,17 +8,18 @@ import GameParser
 
 class SBR_parser():
 
-	def __init__(self,start_date,end_date):
+	def __init__(self,start_date,end_date,league):
 		
 		self.driver = webdriver.Chrome()
-		self.day_parser = day_parser(self.driver)
+		self.day_parser = day_parser(self.driver,league)
 		self.start_date = start_date
 		self.end_date = end_date
+		self.league = league
 		#self.games = []
 
 
 	def get_odds(self):
-		print "Parsing Sportsbook Review for historical NHL odds from ", self.start_date, " to ", self.end_date
+		print "Parsing Sportsbook Review for historical ", self.league, " odds from ", self.start_date, " to ", self.end_date
 
 		curr_date = self.start_date
 		while curr_date <= self.end_date:
@@ -46,12 +47,13 @@ class SBR_parser():
 
 class day_parser():
 
-	def __init__(self,driver):
+	def __init__(self,driver,league):
 		self.date = 0
 		self.driver = driver
 		self.game_parser = []
 		self.games = []
 		self.books = []
+		self.league = league
 
 	def parse_day(self,curr_date):
 
@@ -61,7 +63,10 @@ class day_parser():
 
 		print "Obtaining webpage for date: ", self.date
 
-		webpage = "http://www.sportsbookreview.com/betting-odds/nhl-hockey/?date={0}".format(self.date)
+		if self.league == "NHL":
+			webpage = "http://www.sportsbookreview.com/betting-odds/nhl-hockey/?date={0}".format(self.date)
+		elif self.league == "NBA":
+			webpage = "http://www.sportsbookreview.com/betting-odds/nba-basketball/money-line/?date={0}".format(self.date)
 		self.driver.get(webpage)
 		print "Pausing for 2 seconds. Close any popups."
 		time.sleep(2)
@@ -80,7 +85,7 @@ class day_parser():
 		# Sometimes cells have different class name
 		game_cells = soup.findAll("div", {"class": re.compile("event-holder*")})
 		for cell in game_cells:
-			self.game_parser = GameParser.GameParser(self.driver,self.date,self.books)
+			self.game_parser = GameParser.GameParser(self.driver,self.date,self.books,self.league)
 			game = self.game_parser.parse_game(cell)
 			if game == -1: continue
 			self.games.append(game)

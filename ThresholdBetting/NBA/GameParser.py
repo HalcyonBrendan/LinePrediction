@@ -6,9 +6,10 @@ import time
 
 class GameParser():
 
-	def __init__(self,driver,date,books):
+	def __init__(self,driver,date,books,league):
 
 		self.driver = driver
+		self.league = league
 		self.date = date
 		self.game_time = ""
 		self.home_team = ""
@@ -29,6 +30,19 @@ class GameParser():
 		self.home_team = team_names[1].contents[0].contents[0]
 		#print "Home team: ", self.home_team
 
+		# For NBA games, parse score and then minimize score content
+		if self.league == "NBA":
+			
+			score_content = game_html.find("div", {"class": "score-content"})
+			team_scores = score_content.findAll("div", {"class": "score-periods"})
+			away_score = int(team_scores[0].find("span", {"class": "current-score"}).contents[0])
+			home_score = int(team_scores[1].find("span", {"class": "current-score"}).contents[0])
+			print away_score, " ", home_score
+
+
+			time.sleep(15)
+
+
 
 		book_html = game_html.findAll("div", {"class": "el-div eventLine-book"})
 
@@ -36,11 +50,13 @@ class GameParser():
 		bookCount = -1
 		for book in book_html:
 			bookCount += 1
+			print self.books[bookCount]
 			if self.books[bookCount] == 'betcris': continue
 			# Click on odds to show line history
 			try:
-				self.driver.find_element_by_id(book.get('id')).click()
-			except:
+				self.driver.find_element_by_id(book.find("div", {"class": "eventLine-book-value"}).get('id')).click()
+			except Exception as e:
+				print e
 				print "Could not get line histories for this game. Continuing to next game."
 				broken_game_flag = 1
 				break
@@ -48,8 +64,8 @@ class GameParser():
 			try:
 				WebDriverWait(self.driver, 15).until(EC.presence_of_element_located((By.XPATH,'//*[@class="thead-fixed"]')))
 			except:
-				print "Loading line history took too long. Continuing to next book"
-				continue
+				print "Loading line history took too long. Continuing to next game"
+				break
 
 			window = BeautifulSoup(self.driver.page_source,"html.parser")
 			moneyline_box = window.find("div", {"id": "dialogPop"}).findAll("div", {"class": "info-box"})[1]

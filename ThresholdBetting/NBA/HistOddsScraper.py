@@ -4,13 +4,14 @@ import HistOddsDB
 
 class HistOddsScraper():
 
-	def __init__(self,start_date,end_date,season):
+	def __init__(self,league,season,start_date,end_date):
 
 		self.season = season
+		self.league = league
 		self.start_date = start_date
 		self.end_date = end_date
-		self.parser = SBR_parser.SBR_parser(self.start_date,self.end_date)
-		self.histDB = HistOddsDB.HistOddsDB("NHL",self.season)
+		self.parser = SBR_parser.SBR_parser(self.start_date,self.end_date,self.league)
+		self.histDB = HistOddsDB.HistOddsDB(self.league,self.season)
 
 	def run(self):
 
@@ -29,27 +30,28 @@ class HistOddsScraper():
 if __name__ == "__main__":
 
 	# SET THIS:
-	season = 20132014
+	league = "NBA"
+	season = 20152016
 
 	if season == 20152016:
-		start_date = 20151007
-		end_date = 20160410
+		start_date = 20151027
+		end_date = 20160413
 	elif season == 20142015:
-		start_date = 20141008
-		end_date = 20150411
+		start_date = 20141028
+		end_date = 20150415
 	elif season == 20132014:
-		start_date = 20131001
-		end_date = 20140413
+		start_date = 20131029
+		end_date = 20140416
 	elif season == 20122013:
-		start_date = 20130119
-		end_date = 20130427
+		start_date = 20121030
+		end_date = 20130417
 	elif season == 20112012:
-		start_date = 20111006
-		end_date = 20120407
+		start_date = 20111225
+		end_date = 20120426
 
 	# Uncomment if you need to restart mid-season
 	#start_date = 20140331
 	#end_date = 20140413
 
-	odds = HistOddsScraper(start_date,end_date,season)
+	odds = HistOddsScraper(league,season,start_date,end_date)
 	odds.run()
