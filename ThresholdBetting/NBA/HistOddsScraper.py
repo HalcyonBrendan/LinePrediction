@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
 	# SET THIS:
 	league = "NBA"
-	season = 20152016
+	season = 20142015
 
 	if season == 20152016:
 		start_date = 20151027
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 		end_date = 20120426
 
 	# Uncomment if you need to restart mid-season
-	#start_date = 20140331
+	start_date = 20150110
 	#end_date = 20140413
 
 	odds = HistOddsScraper(league,season,start_date,end_date)

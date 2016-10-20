@@ -24,13 +24,14 @@ class HistOddsDB():
 		if not self.moneylines_table_exists():
 			print "{0}_Moneylines{1} does not exist. Creating table!".format(self.league,self.season)
 			self.create_moneylines_table()
+		game["time"] = self.translate_datetime(game["date"],game["time"],1)
 		game["home_team"] = translate_name(game["home_team"],self.league)
 		game["away_team"] = translate_name(game["away_team"],self.league)
 		if game["home_team"] == "unknown" or game["away_team"] == "unknown":
 			print "Unknown team on date: ", game["date"]
 			print "Continuing to next game."
 			return 1
-		game["id"] = self.get_game_id(game["home_team"],game["away_team"],game["date"])
+		game["id"] = self.get_game_id(game)
 		if game["id"] == -1:
 			print "Could not find id for game on ", game["date"], " between ", game["home_team"], " and ", game["away_team"]
 			print "Continuing to next game."
@@ -41,9 +42,8 @@ class HistOddsDB():
 			return 1
 		return 0
 
-	def add_team_odds_to_DB(self,game_id,team,teamScore,opponent,opponentScore,books,game_time,game_date,odds,opponent_odds,poll_times):
+	def add_team_odds_to_DB(self,game_id,team,teamScore,opponent,opponentScore,books,gameTime,game_date,odds,opponent_odds,poll_times):
 	
-		gameTime = self.translate_datetime(game_date,game_time,1)
 		book_counter = -1
 		for book in books:
 			book_counter += 1
@@ -62,15 +62,59 @@ class HistOddsDB():
 				self.execute_command(query_string)
 		return 0
 
-	def get_game_id(self,home_team,away_team,date):
-		# Query DB for game matching the given parameters
-		query_string = "SELECT gameID FROM {0}_Moneylines{1} WHERE team=\'{2}\' AND opponent=\'{3}\' AND date={4};".format(self.league,self.season,home_team,away_team,date)
-		game_id = self.execute_query(query_string)
+	def get_game_id(self, game):
+		# we can assume that all the games in the id database are in the next 2 days
+
+		if not self.ids_table_exists():
+			print "game_ids table does not exist"
+			self.create_ids_table()
+		query_string = """SELECT gameID FROM gameIDs WHERE homeTeam = \'{0}\' AND awayTeam = \'{1}\' AND gameTime > {2}-4500 AND gameTime < {2}+4500  AND sport = \'{3}\' AND season = {4};""".format(game["home_team"],game["away_team"],game["time"], self.league, self.season)
+
+		self.cursor.execute(query_string)
 		try:
-			gid = int(game_id[0][0])
+			# attempts to get the result 
+			result = self.cursor.fetchone()[0]
 		except:
-			gid = -1
-		return gid
+			#if it fails, make a new id
+			result = self.add_id(game)
+		return result
+
+	def add_id(self,game):
+
+		if not self.ids_table_exists():
+			print "gameIDs table does not exist"
+			self.create_ids_table()
+
+		print "Making new id"
+
+		self.cursor.execute("""SELECT MAX(gameID) AS gameID FROM {0}_Moneylines{1}""".format(self.league,self.season))
+		largest_id = self.cursor.fetchone()[0]
+
+		# print self.cursor.fetchone()
+		if largest_id:
+			new_id = largest_id + 1
+		else:
+			new_id = 1
+
+		query_string = """INSERT INTO gameIDs (gameID,homeTeam,awayTeam,sport,gameTime,season) VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\',{5})""".format(new_id,game["home_team"],game["away_team"],self.league,game["time"],self.season)
+		self.cursor.execute(query_string)
+
+		# print query_string
+		self.db.commit()
+		return new_id
+
+	def create_ids_table(self):
+		query_string = """CREATE TABLE gameIDs (gameID INT, gameTime TEXT, homeTeam TEXT, awayTeam TEXT, sport TEXT, season INT)"""
+		# print query_string
+		self.execute_command(query_string)
+
+	def ids_table_exists(self):
+		stmt = "SHOW TABLES LIKE \'gameIDs\'"
+		self.cursor.execute(stmt)
+		result = self.cursor.fetchone()
+		if result: return True
+		else: return False
+
 
 	def translate_datetime(self, event_date, event_time, option):
 		# in case of simply finding game time

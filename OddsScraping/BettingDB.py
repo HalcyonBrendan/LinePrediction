@@ -151,7 +151,6 @@ class BettingDB():
         if not self.ids_table_exists():
             print "game_ids table does not exist"
             self.create_ids_table()
-
         query_string = """SELECT id FROM game_ids 
             WHERE home_team = \'{0}\' 
             AND away_team = \'{1}\'
@@ -167,7 +166,6 @@ class BettingDB():
         except:
             #if it fails, make a new id
             result = self.add_id(game)
-
         return result
 
     def add_id(self,game):
@@ -175,7 +173,6 @@ class BettingDB():
         if not self.ids_table_exists():
             print "game_ids table does not exist"
             self.create_ids_table()
-
 
         if not self.lines_table_exists(game["sport"]):
             print "{}_lines table does not exist".format(game["sport"])
@@ -187,7 +184,6 @@ class BettingDB():
         largest_id = self.cursor.fetchone()[0]
 
         # print self.cursor.fetchone()
-
         if largest_id:
             new_id = largest_id + 1
         else:
@@ -200,9 +196,7 @@ VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\')""".format(new_id,game["home_team"],
         self.cursor.execute(query_string)
 
         # print query_string
-        
         self.db.commit()
-
         return new_id
 
     def delete_id(self,game):

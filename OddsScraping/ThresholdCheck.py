@@ -33,13 +33,13 @@ class ThresholdCheck():
 			print "Latest away line: ", away_latest, " vs threshold ", at, "\n"
 
 			if  home_latest > ht:
-				print "\n\n\n\n\a\a\a\a\a"
+				print "\n\n\n\n\a"
 				print "Check out the HOME team in game ", gid, " !!!!!\n\n\n"
-				print "\a\a\a\a"
+				print "\a"
 			if  away_latest > at:
-				print "\n\n\n\n\a\a\a\a\a"
+				print "\n\n\n\n\a"
 				print "Check out the AWAY team in game ", gid, " !!!!!\n\n\n"
-				print "\a\a\a\a"
+				print "\a"
 
 	def find_upcoming_games(self,curr_time):
 		query = "SELECT DISTINCT id FROM hockey_lines WHERE game_time>{0} AND site=\'{1}\';".format(curr_time,self.thresh_book)

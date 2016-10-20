@@ -42,8 +42,6 @@ class GameParser():
 
 			#time.sleep(15)
 
-
-
 		book_html = game_html.findAll("div", {"class": "el-div eventLine-book"})
 
 		broken_game_flag = 0
@@ -64,9 +62,9 @@ class GameParser():
 				continue
 			#time.sleep(1)
 			try:
-				WebDriverWait(self.driver, 15).until(EC.presence_of_element_located((By.XPATH,'//*[@class="thead-fixed"]')))
+				WebDriverWait(self.driver, 8).until(EC.presence_of_element_located((By.XPATH,'//*[@class="thead-fixed"]')))
 			except:
-				print "Loading line history took too long. Continuing to next book"
+				print "Loading line history took too long for ", self.books[bookCount], ". Continuing to next book"
 				continue
 
 			window = BeautifulSoup(self.driver.page_source,"html.parser")
