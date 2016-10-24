@@ -5,8 +5,7 @@ import uuid, time
 class BettingDB():
 
     def __init__(self):     
-        self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",
-            user="root", db="betting")
+        self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",user="root", db="betting")
         self.cursor = self.db.cursor()
         self.date = datetime.datetime.now()
 
@@ -24,10 +23,10 @@ class BettingDB():
         # print type(game["home_line"])
         # print type(game["away_line"])
 
-        if not self.lines_table_exists(line["sport"]):
+        if not self.lines_table_exists(line["league"]):
             # if table does not exist
-            print "{}_lines does not exist".format(line[sport])
-            self.create_moneyline_table(line["sport"])
+            print "{}_lines does not exist".format(line[league])
+            self.create_moneyline_table(line["league"])
 
         line["id"] = self.get_game_id(line)
 
@@ -38,13 +37,13 @@ class BettingDB():
             line["away_line"] = convert_odds(line["away_line"],"american","decimal")
 
         # Check to see if line has changed since last check
-        query_string = """SELECT home_line FROM {0}_lines WHERE id={1} AND site=\'{2}\' ORDER BY poll_time DESC LIMIT 1;""".format(line["sport"],line["id"],line["site"])
+        query_string = """SELECT home_line FROM {0}_lines WHERE id={1} AND site=\'{2}\' ORDER BY poll_time DESC LIMIT 1;""".format(line["league"],line["id"],line["site"])
         previous_home_line = self.strip_unwanted_text(str(self.execute_query(query_string)))
         if len(previous_home_line) > 0:
             previous_home_line = float(previous_home_line)
         else:
             previous_home_line = -1
-        query_string = """SELECT away_line FROM {0}_lines WHERE id={1} AND site=\'{2}\' ORDER BY poll_time DESC LIMIT 1;""".format(line["sport"],line["id"],line["site"])
+        query_string = """SELECT away_line FROM {0}_lines WHERE id={1} AND site=\'{2}\' ORDER BY poll_time DESC LIMIT 1;""".format(line["league"],line["id"],line["site"])
         previous_away_line = self.strip_unwanted_text(str(self.execute_query(query_string)))
         if len(previous_away_line) > 0:
             previous_away_line = float(previous_away_line)
@@ -59,18 +58,18 @@ class BettingDB():
 
         query_string = """INSERT INTO {8}_lines (poll_time, id, game_time, home_team, home_line, away_team, away_line, site)
     VALUES ({0},{1},{2},\'{3}\',{4},\'{5}\',{6},\'{7}\')""".format(line["poll_time"], line["id"], line["game_time"], line["home_team"],
-    line["home_line"], line["away_team"], line["away_line"],line["site"],line["sport"])
+    line["home_line"], line["away_team"], line["away_line"],line["site"],line["league"])
         self.execute_command(query_string)
 
 
-    def create_moneyline_table(self,sport):
+    def create_moneyline_table(self,league):
         query_string = """CREATE TABLE {}_lines (poll_time INT, id INT, game_time INT,
-    home_team TEXT, home_line DOUBLE(8,4), away_team TEXT, away_line DOUBLE(8,4), site TEXT)""".format(sport)
+    home_team TEXT, home_line DOUBLE(8,4), away_team TEXT, away_line DOUBLE(8,4), site TEXT)""".format(league)
         # print query_string
         self.execute_command(query_string)
 
-    def lines_table_exists(self, sport):
-        stmt = "SHOW TABLES LIKE \'{}_lines\'".format(sport)
+    def lines_table_exists(self, league):
+        stmt = "SHOW TABLES LIKE \'{}_lines\'".format(league)
         self.cursor.execute(stmt)
         result = self.cursor.fetchone()
         if result:
@@ -88,7 +87,7 @@ class BettingDB():
             return False
 
     def create_ids_table(self):
-        query_string = """CREATE TABLE game_ids (id INT, game_time TEXT, home_team TEXT, away_team TEXT, sport TEXT)"""
+        query_string = """CREATE TABLE game_ids (id INT, game_time TEXT, home_team TEXT, away_team TEXT, league TEXT)"""
         # print query_string
         self.execute_command(query_string)
 
@@ -97,7 +96,7 @@ class BettingDB():
 
         game_id = self.get_game_id(game)
         query_string = """SELECT home_line, away_line, poll_time FROM {0}_lines 
-            WHERE id = {1} """.format(game["sport"],game_id)
+            WHERE id = {1} """.format(game["league"],game_id)
 
         self.cursor.execute(query_string)
 
@@ -127,8 +126,8 @@ class BettingDB():
             WHERE home_team = \'{0}\' 
             AND away_team = \'{1}\'
             AND game_time = \'{2}\'
-            AND sport = \'{3}\'""".format(game["home_team"],
-            game["away_team"],game["game_time"], game["sport"])
+            AND league = \'{3}\'""".format(game["home_team"],
+            game["away_team"],game["game_time"], game["league"])
 
         # print "{}".format(query_string)
         self.cursor.execute(query_string)
@@ -156,8 +155,8 @@ class BettingDB():
             AND away_team = \'{1}\'
             AND game_time < {2}+4500
             AND game_time > {2}-4500
-            AND sport = \'{3}\';""".format(game["home_team"],
-            game["away_team"],game["game_time"], game["sport"])
+            AND league = \'{3}\';""".format(game["home_team"],
+            game["away_team"],game["game_time"], game["league"])
 
         self.cursor.execute(query_string)
         try:
@@ -174,13 +173,13 @@ class BettingDB():
             print "game_ids table does not exist"
             self.create_ids_table()
 
-        if not self.lines_table_exists(game["sport"]):
-            print "{}_lines table does not exist".format(game["sport"])
-            self.create_moneyline_table(game["sport"])
+        if not self.lines_table_exists(game["league"]):
+            print "{}_lines table does not exist".format(game["league"])
+            self.create_moneyline_table(game["league"])
 
         print "Making new id"
 
-        self.cursor.execute("""SELECT MAX(id) AS id FROM {}_lines""".format(game["sport"]))
+        self.cursor.execute("""SELECT MAX(id) AS id FROM {}_lines""".format(game["league"]))
         largest_id = self.cursor.fetchone()[0]
 
         # print self.cursor.fetchone()
@@ -189,9 +188,9 @@ class BettingDB():
         else:
             new_id = 1
 
-        query_string = """INSERT INTO game_ids (id,home_team,away_team,sport,game_time)
+        query_string = """INSERT INTO game_ids (id,home_team,away_team,league,game_time)
 VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\')""".format(new_id,game["home_team"],game["away_team"],
-            game["sport"],game["game_time"])
+            game["league"],game["game_time"])
 
         self.cursor.execute(query_string)
 
@@ -206,8 +205,7 @@ VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\')""".format(new_id,game["home_team"],
 
         if game_id:    
             print "Deleting id"
-            query_string = """DELETE FROM game_ids WHERE id = {0} AND sport = '{1}' """.format(
-                game_id,game["sport"])      
+            query_string = """DELETE FROM game_ids WHERE id = {0} AND league = '{1}' """.format(game_id,game["league"])      
             # print query_string
             self.cursor.execute(query_string)
 

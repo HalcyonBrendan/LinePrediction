@@ -5,8 +5,9 @@ import BettingDB
 
 class ThresholdCheck():
 
-	def __init__(self,thresh_book="Pinnacle",alpha=0.02):
+	def __init__(self,league="NHL",thresh_book="Pinnacle",alpha=0.02):
 		self.bets_DB = BettingDB.BettingDB()
+		self.league = league
 		self.thresh_book = thresh_book
 		self.alpha = alpha
 
@@ -43,7 +44,7 @@ class ThresholdCheck():
 
 
 	def find_upcoming_games(self,curr_time):
-		query = "SELECT DISTINCT id,home_team,away_team FROM hockey_lines WHERE game_time>{0} AND site=\'{1}\';".format(curr_time,self.thresh_book)
+		query = "SELECT DISTINCT id,home_team,away_team FROM {0}_lines WHERE game_time>{1} AND site=\'{2}\';".format(self.league,curr_time,self.thresh_book)
 		ids_temp = self.bets_DB.execute_query(query)
 		ids = []
 		home_teams = []
@@ -73,10 +74,10 @@ class ThresholdCheck():
 
 	def get_line(self,gid,role,epoch):
 		if role=="home":
-			query = "SELECT home_line FROM hockey_lines WHERE id={0} AND site=\'{1}\' ORDER BY poll_time;".format(gid,self.thresh_book)
+			query = "SELECT home_line FROM {0}_lines WHERE id={1} AND site=\'{2}\' ORDER BY poll_time;".format(self.league,gid,self.thresh_book)
 			temp_lines = self.bets_DB.execute_query(query)
 		elif role=="away":
-			query = "SELECT away_line FROM hockey_lines WHERE id={0} AND site=\'{1}\' ORDER BY poll_time;".format(gid,self.thresh_book)
+			query = "SELECT away_line FROM {0}_lines WHERE id={1} AND site=\'{2}\' ORDER BY poll_time;".format(self.league,gid,self.thresh_book)
 			temp_lines = self.bets_DB.execute_query(query)
 		lines = []
 		for line in temp_lines: lines.append(float(line[0]))

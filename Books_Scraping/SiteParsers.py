@@ -20,20 +20,20 @@ class bodog():
     def __init__(self, driver):
         self.driver = driver
         self.name = "bodog"
-        self.links = config["sport_webpages"][self.name]
+        self.links = config["league_webpages"][self.name]
         self.class_print("initialized")
 
-    def get_moneylines(self, sports):
-
+    def get_moneylines(self, leagues):
+        if type(leagues) is not list: leagues = [leagues]
         self.class_print("Obtaining moneylines")
 
         moneylines = []
         
-        for sport in sports:
+        for league in leagues:
 
-            self.class_print("Getting webpage for {}".format(sport))
+            self.class_print("Getting webpage for {}".format(league))
 
-            self.driver.get(self.links[sport])
+            self.driver.get(self.links[league])
 
             # scroll to make sure we reveal all the hidden games
             self.scroll()
@@ -47,8 +47,8 @@ class bodog():
             for cell in game_cells:
 
                 teams = cell.findAll("h3", {"class" :"ng-binding ng-scope"})
-                away_team = translate_name(teams[0].getText(), sport)
-                home_team = translate_name(teams[1].getText(), sport)
+                away_team = translate_name(teams[0].getText(), league)
+                home_team = translate_name(teams[1].getText(), league)
                 if away_team=="unknown" or home_team=="unknown":
                     print "Team name not recognized. Skipping game ..."
                     continue
@@ -87,7 +87,7 @@ class bodog():
                         "home_line": home_line, 
                         "away_line": away_line,
                         "poll_time": poll_time,
-                        "sport":sport
+                        "league": league
                     }
                 )
 
@@ -149,7 +149,7 @@ class FiveDimes():
 
     def __init__(self, driver):
         self.name = "FiveDimes"
-        self.sports_translations = config["sports_translations"][self.name]
+        self.league_translations = config["league_translations"][self.name]
         self.driver = driver
         self.acceptable_delay = 10 #s
 
@@ -177,48 +177,38 @@ class FiveDimes():
         link = self.driver.find_element_by_link_text('sign out')
         link.click()
 
-    def get_moneylines(self, sports):
-
+    def get_moneylines(self, leagues):
+        if type(leagues) is not list: leagues = [leagues]
         self.login()
 
         self.class_print("obtaining moneylines")
 
         moneylines = []
 
-        for sport in sports:
-            # print sport, sports
-            if sport in self.sports_translations.keys():
+        for league in leagues:
+            if league in self.league_translations.keys():
                 try:
-                    # print self.sports_translations[sport]
                     WebDriverWait(self.driver, self.acceptable_delay).until(
-                        EC.presence_of_element_located((By.NAME, self.sports_translations[sport])))
-                        # self.driver.find_element_by_id(self.sports_translations[sport])))
-                    # print "Page is ready!"
+                        EC.presence_of_element_located((By.NAME, self.league_translations[league])))
                 except TimeoutException:
                     print "Loading took too much time!"
 
-                # sleep(5)
+                self.class_print("selecting {}".format(league))
 
-                self.class_print("selecting {}".format(sport))
-                # self.driver.find_element_by_name(self.sports_translations[sport]).click()
                 try:
-                    self.driver.find_element_by_name(self.sports_translations[sport]).click()
+                    self.driver.find_element_by_name(self.league_translations[league]).click()
                     self.driver.find_element_by_id('btnContinue').click()
                 except:
                     continue
 
                 try:
-                    # print self.sports_translations[sport]
                     WebDriverWait(self.driver, self.acceptable_delay).until(
-                        EC.presence_of_element_located((By.ID, "tbl{}Game".format(config["tablenames"][sport]))))
-                        # self.driver.find_element_by_id(self.sports_translations[sport])))
-                    # print "Page is ready!"
+                        EC.presence_of_element_located((By.ID, "tbl{}Game".format(config["tablenames"][league]))))
                 except TimeoutException:
                     print "Loading took too much time!"
 
-
                 soup = BeautifulSoup(self.driver.page_source, "html.parser")
-                soup = soup.findAll("table", {"id": "tbl{}Game".format(config["tablenames"][sport])})[0]
+                soup = soup.findAll("table", {"id": "tbl{}Game".format(config["tablenames"][league])})[0]
                 self.class_print("moneylines page loaded")
                 self.class_print("obtaining moneylines")
                 # print soup
@@ -245,7 +235,7 @@ class FiveDimes():
                         else:
                             break
                     
-                    away_team = translate_name(" ".join(away_string), sport)
+                    away_team = translate_name(" ".join(away_string), league)
                     if away_team=="unknown":
                         print "Team name not recognized. Skipping game ..."
                         continue
@@ -273,7 +263,7 @@ class FiveDimes():
                         else:
                             break
                     
-                    home_team = translate_name(" ".join(home_string), sport)
+                    home_team = translate_name(" ".join(home_string), league)
                     if home_team=="unknown":
                         print "Team name not recognized. Skipping game ..."
                         continue
@@ -296,34 +286,26 @@ class FiveDimes():
                             "home_line": home_line, 
                             "away_line": away_line,
                             "poll_time": poll_time,
-                            "sport":sport
+                            "league": league
                         }
                     )
-                    
-                    #self.class_print("finished parsing {0} v {1}".format(home_team, away_team))
             else:
-                self.class_print("{} not yet available".format(sport))
+                self.class_print("{} not yet available".format(league))
 
-            self.class_print("finished parsing {}".format(sport))
-
+            self.class_print("finished parsing {}".format(league))
             self.driver.execute_script("window.history.go(-1)")
 
             try:
-                # print self.sports_translations[sport]
-                WebDriverWait(self.driver, self.acceptable_delay).until(
-                    EC.presence_of_element_located((By.NAME, self.sports_translations[sport])))
-                    # self.driver.find_element_by_id(self.sports_translations[sport])))
-                # print "Page is ready!"
+                WebDriverWait(self.driver, self.acceptable_delay).until(EC.presence_of_element_located((By.NAME, self.league_translations[league])))
             except TimeoutException:
                 print "Loading took too much time!"
 
-            self.driver.find_element_by_name(self.sports_translations[sport]).click() # unclick
+            self.driver.find_element_by_name(self.league_translations[league]).click() # unclick
 
         #try:
         #    self.logout()
         #except:
         #    pass
-
         return {"site": self.name, "moneylines": moneylines}
 
     # given day of the week and time of game, returns datetime in seconds fromtimestamp
@@ -366,7 +348,7 @@ class Pinnacle():
     def __init__(self,driver):
         self.name = "Pinnacle"
         self.driver = driver
-        self.links = config["sport_webpages"][self.name]
+        self.links = config["league_webpages"][self.name]
         self.class_print("initialized")
         self.acceptable_delay = 10 #s
 
@@ -401,30 +383,28 @@ class Pinnacle():
         self.class_print("logging out")
         self.driver.find_element_by_link_text('Log Out').click()
 
-    def get_moneylines(self, sports):
-
+    def get_moneylines(self, leagues):
+        if type(leagues) is not list: leagues = [leagues]
         self.login()
 
         self.class_print("Obtaining moneylines")
 
         moneylines = []
         
-        for sport in sports:
+        for league in leagues:
 
-            self.class_print("Getting webpage for {}".format(sport))
+            self.class_print("Getting webpage for {}".format(league))
 
             try:
-                self.driver.get(self.links[sport])
+                self.driver.get(self.links[league])
 
-                WebDriverWait(self.driver, self.acceptable_delay).until(
-                    EC.presence_of_element_located((By.ID, "LinesContainer")))
+                WebDriverWait(self.driver, self.acceptable_delay).until(EC.presence_of_element_located((By.ID, "LinesContainer")))
             except:
                 print "Loading took too much time! Trying again in one minute"
                 # Go to different page in the meantime
                 self.driver.get('https://www.google.ca')
                 self.countdown_sleep(60)
 
-            time.sleep(0.5) # temp to make sure everything is loading
             self.class_print("HTML obtained. Scraping site")
             soup = BeautifulSoup(self.driver.page_source, "html.parser")
             days = soup.find_all("div", {'class':"linesDiv"})
@@ -448,7 +428,7 @@ class Pinnacle():
 
                     if teamCounter % 2 == 1:
                         away_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
-                        away_team = translate_name(self.strip_unwanted_text(away_team),sport)
+                        away_team = translate_name(self.strip_unwanted_text(away_team),league)
                         if away_team=="unknown":
                             print "Team name not recognized. Skipping game ..."
                             continue
@@ -463,7 +443,7 @@ class Pinnacle():
                             continue
                     else:
                         home_team = cell.find("td", {"class":"teamId"}).find("span", {"class": "sTime"}).contents[0].strip()
-                        home_team = translate_name(self.strip_unwanted_text(home_team),sport)
+                        home_team = translate_name(self.strip_unwanted_text(home_team),league)
                         if home_team=="unknown":
                             print "Team name not recognized. Skipping game ..."
                             continue
@@ -485,19 +465,17 @@ class Pinnacle():
                                 "home_line": home_line, 
                                 "away_line": away_line,
                                 "poll_time": poll_time,
-                                "sport":sport
+                                "league": league
                             }
                         )
         #try:
         #    self.logout()
         #except:
         #    pass
-
         return {"site": self.name, "moneylines": moneylines}
 
     def strip_unwanted_text(self,my_str):
         for item in config['to_strip']:
-            # print "\'{0}\' in \'{1}\'? {2}".format(item, my_str, item in my_str)
             my_str = my_str.replace(item,'')
 
         return my_str
@@ -548,22 +526,6 @@ class Pinnacle():
             sys.stdout.flush()
             time.sleep(1) 
 
-
-        # if float_time >= 13:
-        #     float_time -= 12
-        #     if float_time >= 10:
-        #         return "{0:5.2f}p".format(float_time)
-        #     else:
-        #         return "{0:4.2f}p".format(float_time)
-        # elif float_time >= 12:
-        #     return "{0:5.2f}p".format(float_time)
-        # elif float_time < 1:
-        #     return "{0:5.2f}a".format(float_time + 12)
-        # elif float_time >= 10:
-        #     return "{0:5.2f}a".format(float_time)
-        # else:
-        #     return "{0:4.2f}a".format(float_time)
-
     def class_print(self, string):
         print "{0}: {1}".format(self.name, string)
 
@@ -574,7 +536,7 @@ class SportsInteraction():
     def __init__(self,driver):
         self.name = "SportsInteraction"
         self.driver = driver
-        self.links = config["sport_webpages"][self.name]
+        self.links = config["league_webpages"][self.name]
         self.class_print("initialized")
         self.acceptable_delay = 10 #s
 
@@ -609,28 +571,26 @@ class SportsInteraction():
         self.class_print("logging out")
         self.driver.find_element_by_id('headerLogoutBtn').click()
 
-    def get_moneylines(self, sports):
-
+    def get_moneylines(self, leagues):
+        if type(leagues) is not list: leagues = [leagues]
         self.login()
 
         self.class_print("Obtaining moneylines")
 
         moneylines = []
         
-        for sport in sports:
+        for league in leagues:
 
-            if sport == "baseball_al" or sport == "baseball_nl":
-                sport_name = "baseball"
+            if league == "baseball_al" or league == "baseball_nl":
+                league_name = "baseball"
             else:
-                sport_name = sport
+                league_name = league
 
-            self.class_print("Getting webpage for {}".format(sport))
+            self.class_print("Getting webpage for {}".format(league))
 
             try:
-                self.driver.get(self.links[sport])
-
-                WebDriverWait(self.driver, self.acceptable_delay).until(
-                    EC.presence_of_element_located((By.ID, "innerEventsWrapper")))
+                self.driver.get(self.links[league])
+                WebDriverWait(self.driver, self.acceptable_delay).until(EC.presence_of_element_located((By.ID, "innerEventsWrapper")))
             except:
                 print "Loading took too much time! Trying again in one minute"
                 # Go to different page in the meantime
@@ -661,8 +621,8 @@ class SportsInteraction():
                 home_info = lines.findAll("li", {'class':"runner"})[1]
                 away_team = away_info.find("span", {'class':"name"}).contents[0]
                 home_team = home_info.find("span", {'class':"name"}).contents[0]
-                away_team = translate_name(str(away_team.split(':')[0]).strip(),sport_name)
-                home_team = translate_name(str(home_team.split(':')[0]).strip(),sport_name)
+                away_team = translate_name(str(away_team.split(':')[0]).strip(),league_name)
+                home_team = translate_name(str(home_team.split(':')[0]).strip(),league_name)
                 if away_team=="unknown" or home_team=="unknown":
                     print "Team name not recognized. Skipping game ..."
                     continue
@@ -687,14 +647,13 @@ class SportsInteraction():
                         "home_line": home_line, 
                         "away_line": away_line,
                         "poll_time": poll_time,
-                        "sport":sport_name
+                        "league": league_name
                     }
                 )
         #try:
         #    self.logout()
         #except:
         #    pass
-
         return {"site": self.name, "moneylines": moneylines}
 
     def strip_unwanted_text(self,my_str):
@@ -743,10 +702,10 @@ class SportsInteraction():
         print "{0}: {1}".format(self.name, string)
 
 
-def translate_name(long_form, sport):
+def translate_name(long_form, league):
     # print long_form
-    for short_form in config["short_names"][sport]:
-        if long_form in config["short_names"][sport][short_form]:
+    for short_form in config["short_names"][league]:
+        if long_form in config["short_names"][league][short_form]:
             return short_form
     return "unknown"
 
@@ -784,8 +743,8 @@ if __name__ == "__main__":
     display.start()
     driver = webdriver.Firefox()
     parser = Pinnacle(driver)
-    sports = ['hockey', 'baseball']
-    results = parser.get_moneylines(sports)
+    leagues = ['NHL', 'baseball']
+    results = parser.get_moneylines(leagues)
 
     # for result in results:
     #     if failure_string in results:

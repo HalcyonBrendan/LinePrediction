@@ -9,12 +9,12 @@ def print_json(json_object):
     print json.dumps(json_object, indent=4, sort_keys=True) 
     print "\n"
 
-class HTML_parser():
+class HTML_Parser():
 
-	def __init__(self):
+	def __init__(self,league):
 
 		self.betting_websites = config["bookies"]
-		self.sports = config["sports"]
+		self.league = league
 		# self.display = Display(visible=0, size=(800, 600))
 		# self.display.start()
 		# login to allow modification of roster
@@ -37,12 +37,9 @@ class HTML_parser():
 
 		for site in self.betting_websites:
 
-			#if site == "Pinnacle":
-			#	continue
+			print "Parsing", site, "for", self.league
 
-			print "Parsing", site, "for", ", ".join(self.sports[site])
-
-			moneylines.append(self.parsers[site].get_moneylines(self.sports[site]))
+			moneylines.append(self.parsers[site].get_moneylines(self.league))
 
 		return moneylines
 
@@ -50,5 +47,5 @@ class HTML_parser():
 		self.driver.close()
 
 if __name__ == "__main__":
-	parser = HTML_parser()
+	parser = HTML_Parser()
 	print_json(parser.get_moneylines())

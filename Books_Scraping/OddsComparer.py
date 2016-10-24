@@ -1,6 +1,6 @@
 # from bs4 import BeautifulSoup
 import re, time, sys, datetime, math, signal
-import HTML_parser
+import HTML_Parser
 import Emailer
 import BettingDB, ThresholdCheck
 import random
@@ -12,8 +12,9 @@ def print_json(json_object):
 
 class OddsComparer():
 
-    def __init__(self):
-        self.parser = HTML_parser.HTML_parser()
+    def __init__(self,league):
+        self.league = league
+        self.parser = HTML_Parser.HTML_Parser(self.league)
         self.bets_DB = BettingDB.BettingDB()
         self.emailer = Emailer.Emailer()
         self.games = {}
@@ -30,7 +31,6 @@ class OddsComparer():
 
             # print_json(self.games)
 
-            # for sport in self.games:
             for group in self.games:
 
                 site = group["site"]
@@ -71,7 +71,7 @@ class OddsComparer():
             #     self.emailer.send_email(results)
 
             # Run code to check lines against initial threshold
-            threshCheck = ThresholdCheck.ThresholdCheck()
+            threshCheck = ThresholdCheck.ThresholdCheck(self.league)
             threshCheck.run()
 
             time_to_sleep = int(self.get_poisson_arrival_time(1/float(20*60)))
@@ -165,8 +165,10 @@ class OddsComparer():
         #return -1*math.log(max(0.0001,random.random()))/float(lambda_val)
 
 if __name__ == "__main__":
-    odds = OddsComparer()
 
+    # TO SET:
+    league = "NHL"
+    odds = OddsComparer(league)
     def signal_handler(signal, frame):
         try:
             odd.bets_DB.shutdown()
