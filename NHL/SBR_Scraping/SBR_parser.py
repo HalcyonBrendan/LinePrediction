@@ -68,8 +68,8 @@ class day_parser():
 		elif self.league == "NBA":
 			webpage = "http://www.sportsbookreview.com/betting-odds/nba-basketball/money-line/?date={0}".format(self.date)
 		self.driver.get(webpage)
-		print "Pausing for 2 seconds. Close any popups."
-		time.sleep(2)
+		#print "Pausing for 2 seconds. Close any popups."
+		#time.sleep(2)
 
 		print "HTML obtained. Scraping site."
 		soup = BeautifulSoup(self.driver.page_source, "html.parser")

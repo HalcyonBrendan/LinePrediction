@@ -1,7 +1,6 @@
 import MySQLdb, re, time, sys, datetime, math, signal
 import matplotlib.pyplot as plt
 import numpy as np
-from config import CONFIG as config
 import StatsDB
 
 ####################### Theory 1 ###############################
@@ -55,7 +54,7 @@ class Data(object):
 		self.season_datas = [self._season_data(season) for season in self.seasons]
 
 	def _season_data(self, season):
-		query = "SELECT gameID,team,opponent FROM Games{0} WHERE location='home' ORDER BY gameID;".format(season)
+		query = "SELECT gameID,homeTeam,awayTeam FROM gameIDs WHERE season={0} ORDER BY gameID;".format(season)
 		return bank.db.execute_query(query)
 
 	def _compute_thresholds(self, home_open, away_open):
@@ -114,6 +113,6 @@ class Data(object):
 						break
 		print bet_count
 
-bank = Bank(use_relative_bet=False)
+bank = Bank(sport="NBA",use_relative_bet=False)
 data = Data(bank, seasons=[20152016])
 data.execute()

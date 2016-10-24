@@ -14,7 +14,7 @@ class ThresholdCheck():
 		print "Checking if lines have exceeded ", self.thresh_book, " initial thresholds...\n"
 		# Find games that are still yet to occur
 		curr_time = int(time.time())
-		upcoming_games = self.find_upcoming_games(curr_time)
+		upcoming_games,home_teams,away_teams = self.find_upcoming_games(curr_time)
 
 		# Determine betting thresholds for each game
 		home_thresh = []
@@ -24,30 +24,35 @@ class ThresholdCheck():
 			away_thresh.append(self.determine_thresh(gid,"away"))
 
 		# Check if latest moneyline exceeds threshold for each game
-		for gid,ht,at in zip(upcoming_games,home_thresh,away_thresh):
+		for gid,ht,at,home_team,away_team in zip(upcoming_games,home_thresh,away_thresh,home_teams,away_teams):
 			home_latest = self.get_line(gid,"home","latest")
 			away_latest = self.get_line(gid,"away","latest")
 
-			print "For game ", gid
-			print "Latest home line: ", home_latest, " vs threshold ", ht
-			print "Latest away line: ", away_latest, " vs threshold ", at, "\n"
-
-			if  home_latest > ht:
-				print "\n\n\n\n\a"
-				print "Check out the HOME team in game ", gid, " !!!!!\n\n\n"
-				print "\a"
+			print "For game ", gid, " between ", away_team, " at ", home_team, ":"
+			print "Latest away line: ", away_latest, " vs threshold ", at
+			print "Latest home line: ", home_latest, " vs threshold ", ht, "\n"
+			
 			if  away_latest > at:
 				print "\n\n\n\n\a"
 				print "Check out the AWAY team in game ", gid, " !!!!!\n\n\n"
 				print "\a"
+			if  home_latest > ht:
+				print "\n\n\n\n\a"
+				print "Check out the HOME team in game ", gid, " !!!!!\n\n\n"
+				print "\a"
+
 
 	def find_upcoming_games(self,curr_time):
-		query = "SELECT DISTINCT id FROM hockey_lines WHERE game_time>{0} AND site=\'{1}\';".format(curr_time,self.thresh_book)
+		query = "SELECT DISTINCT id,home_team,away_team FROM hockey_lines WHERE game_time>{0} AND site=\'{1}\';".format(curr_time,self.thresh_book)
 		ids_temp = self.bets_DB.execute_query(query)
 		ids = []
-		for gid in ids_temp:
-			ids.append(int(gid[0]))
-		return ids
+		home_teams = []
+		away_teams = []
+		for game in ids_temp:
+			ids.append(int(game[0]))
+			home_teams.append(str(game[1]))
+			away_teams.append(str(game[2]))
+		return ids,home_teams,away_teams
 
 	def determine_thresh(self,gid,role):
 		home_open = self.get_line(gid,"home","open")

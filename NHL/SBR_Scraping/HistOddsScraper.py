@@ -18,7 +18,6 @@ class HistOddsScraper():
 		day_generator = self.parser.get_odds()
 
 		for day in day_generator:
-			print "WORKING HERE \n\n\n\n"
 			for game in day:
 				print "Adding game to DB: "
 				#print game
@@ -32,7 +31,7 @@ if __name__ == "__main__":
 
 	# SET THIS:
 	league = "NBA"
-	season = 20142015
+	season = 20152016
 
 	if season == 20152016:
 		start_date = 20151027
@@ -51,7 +50,7 @@ if __name__ == "__main__":
 		end_date = 20120426
 
 	# Uncomment if you need to restart mid-season
-	start_date = 20150110
+	start_date = 20160221
 	#end_date = 20140413
 
 	odds = HistOddsScraper(league,season,start_date,end_date)

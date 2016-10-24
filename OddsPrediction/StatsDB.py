@@ -5,7 +5,7 @@ from config import CONFIG as config
 class StatsDB():
 
 	def __init__(self,sport):
-		self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",user="root", db="halcyonnhl")
+		self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",user="root", db="halcyonlines")
 		self.cursor = self.db.cursor()
 		self.sport = sport
 
