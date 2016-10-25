@@ -167,7 +167,7 @@ class OddsComparer():
 if __name__ == "__main__":
 
     # TO SET:
-    league = "NHL"
+    league = "NBA"
     odds = OddsComparer(league)
     def signal_handler(signal, frame):
         try:

@@ -177,25 +177,19 @@ class BettingDB():
             print "{}_lines table does not exist".format(game["league"])
             self.create_moneyline_table(game["league"])
 
-        print "Making new id"
+        print "Making new id for ", game["away_team"], " at ", game["home_team"]
 
-        self.cursor.execute("""SELECT MAX(id) AS id FROM {}_lines""".format(game["league"]))
-        largest_id = self.cursor.fetchone()[0]
+        query = "SELECT MAX(id) FROM game_ids WHERE league=\'{0}\';".format(game["league"])
+        max_id = self.execute_query(query)[0][0]
 
-        # print self.cursor.fetchone()
-        if largest_id:
-            new_id = largest_id + 1
+        if max_id:
+            new_id = max_id + 1
         else:
             new_id = 1
 
-        query_string = """INSERT INTO game_ids (id,home_team,away_team,league,game_time)
-VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\')""".format(new_id,game["home_team"],game["away_team"],
-            game["league"],game["game_time"])
+        query = """INSERT INTO game_ids (id,home_team,away_team,league,game_time) VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\')""".format(new_id,game["home_team"],game["away_team"],game["league"],game["game_time"])
+        self.execute_command(query)
 
-        self.cursor.execute(query_string)
-
-        # print query_string
-        self.db.commit()
         return new_id
 
     def delete_id(self,game):
@@ -205,7 +199,7 @@ VALUES ({0},\'{1}\',\'{2}\',\'{3}\',\'{4}\')""".format(new_id,game["home_team"],
 
         if game_id:    
             print "Deleting id"
-            query_string = """DELETE FROM game_ids WHERE id = {0} AND league = '{1}' """.format(game_id,game["league"])      
+            query_string = """DELETE FROM game_ids WHERE id = {0} AND league = \'{1}\' """.format(game_id,game["league"])      
             # print query_string
             self.cursor.execute(query_string)
 
