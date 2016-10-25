@@ -166,8 +166,12 @@ class OddsComparer():
 
 if __name__ == "__main__":
 
-    # TO SET:
-    league = "NBA"
+    if len(sys.argv) > 1:
+        league = str(sys.argv[1])
+    else:
+        league = "NHL"
+    "Scraping sportsbooks for odds from the ", league
+
     odds = OddsComparer(league)
     def signal_handler(signal, frame):
         try:
