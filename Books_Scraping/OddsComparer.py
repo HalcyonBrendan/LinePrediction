@@ -12,13 +12,14 @@ def print_json(json_object):
 
 class OddsComparer():
 
-    def __init__(self,league):
+    def __init__(self,league,sleep_time):
         self.league = league
         self.parser = HTML_Parser.HTML_Parser(self.league)
         self.bets_DB = BettingDB.BettingDB()
         self.emailer = Emailer.Emailer()
         self.games = {}
         self.date = datetime.datetime.now()
+        self.sleep_time = sleep_time
 
         random.seed(int(time.time()))
 
@@ -74,7 +75,7 @@ class OddsComparer():
             threshCheck = ThresholdCheck.ThresholdCheck(self.league)
             threshCheck.run()
 
-            time_to_sleep = int(self.get_poisson_arrival_time(1/float(20*60)))
+            time_to_sleep = self.sleep_time
             print "sleeping {} seconds".format(time_to_sleep)
             self.countdown_sleep(time_to_sleep)
 
@@ -160,11 +161,11 @@ class OddsComparer():
 
         return game_string
 
-    def get_poisson_arrival_time(self, lambda_val):
-        return 90
-        #return -1*math.log(max(0.0001,random.random()))/float(lambda_val)
 
 if __name__ == "__main__":
+
+    # TO SET:
+    sleep_time = 120
 
     if len(sys.argv) > 1:
         league = str(sys.argv[1])
@@ -172,7 +173,7 @@ if __name__ == "__main__":
         league = "NHL"
     "Scraping sportsbooks for odds from the ", league
 
-    odds = OddsComparer(league)
+    odds = OddsComparer(league,sleep_time)
     def signal_handler(signal, frame):
         try:
             odd.bets_DB.shutdown()

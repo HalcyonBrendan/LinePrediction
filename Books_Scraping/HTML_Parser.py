@@ -37,6 +37,8 @@ class HTML_Parser():
 
 		for site in self.betting_websites:
 
+			if site == "FiveDimes": continue
+
 			print "Parsing", site, "for", self.league
 
 			moneylines.append(self.parsers[site].get_moneylines(self.league))
