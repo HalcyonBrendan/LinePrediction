@@ -31,14 +31,14 @@ class GameParser():
 		#print "Home team: ", self.home_team
 
 		# For NBA games, parse score and then minimize score content
-		if self.league == "NBA":
+		# Although this should work for other leagues as well
+		#if self.league == "NBA":
 			
-			score_content = game_html.find("div", {"class": "score-content"})
-			team_scores = score_content.findAll("div", {"class": "score-periods"})
-			away_score = int(team_scores[0].find("span", {"class": "current-score"}).contents[0])
-			home_score = int(team_scores[1].find("span", {"class": "current-score"}).contents[0])
-			#print away_score, " ", home_score
-
+		score_content = game_html.find("div", {"class": "score-content"})
+		team_scores = score_content.findAll("div", {"class": "score-periods"})
+		away_score = int(team_scores[0].find("span", {"class": "current-score"}).contents[0])
+		home_score = int(team_scores[1].find("span", {"class": "current-score"}).contents[0])
+		#print away_score, " ", home_score
 
 			#time.sleep(15)
 

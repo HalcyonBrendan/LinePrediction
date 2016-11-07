@@ -30,27 +30,52 @@ class HistOddsScraper():
 if __name__ == "__main__":
 
 	# SET THIS:
-	league = "NBA"
+	league = "NHL"
 	season = 20152016
 
-	if season == 20152016:
-		start_date = 20151027
-		end_date = 20160413
-	elif season == 20142015:
-		start_date = 20141028
-		end_date = 20150415
-	elif season == 20132014:
-		start_date = 20131029
-		end_date = 20140416
-	elif season == 20122013:
-		start_date = 20121030
-		end_date = 20130417
-	elif season == 20112012:
-		start_date = 20111225
-		end_date = 20120426
+	if league is "NBA":
+		if season == 20152016:
+			start_date = 20151027
+			end_date = 20160413
+		elif season == 20142015:
+			start_date = 20141028
+			end_date = 20150415
+		elif season == 20132014:
+			start_date = 20131029
+			end_date = 20140416
+		elif season == 20122013:
+			start_date = 20121030
+			end_date = 20130417
+		elif season == 20112012:
+			start_date = 20111225
+			end_date = 20120426
+	elif league is "NHL":
+		if season == 20152016:
+			start_date = 20151007
+			end_date = 20160410
+		elif season == 20142015:
+			start_date = 20141008
+			end_date = 20150411
+		elif season == 20132014:
+			start_date = 20131001
+			end_date = 20140413
+	elif league is "BPL":
+		if season == 20162017:
+			start_date = 20160813
+			end_date = 20161105
+		elif season == 20152016:
+			start_date = 20150808
+			end_date = 20160517
+		elif season == 20142015:
+			start_date = 20140816
+			end_date = 20150524
+		elif season == 20132014:
+			start_date = 20130817
+			end_date = 20140511
+	
 
 	# Uncomment if you need to restart mid-season
-	start_date = 20160221
+	start_date = 20151112
 	#end_date = 20140413
 
 	odds = HistOddsScraper(league,season,start_date,end_date)

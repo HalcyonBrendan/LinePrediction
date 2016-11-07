@@ -48,13 +48,13 @@ class ThresholdCheck():
 
 			
 			if  max(away_latest,si_away_latest,bod_away_latest) > at:
-				print "\n\n\a"
+				print "\n\n"
 				print "Check out the AWAY team in game ", gid, " !!!!!\n\n"
-				print "\a"
+				print ""
 			if  max(home_latest,si_home_latest,bod_home_latest) > ht:
-				print "\n\n\a"
+				print "\n\n"
 				print "Check out the HOME team in game ", gid, " !!!!!\n\n"
-				print "\a"
+				print ""
 
 
 	def find_upcoming_games(self,curr_time):

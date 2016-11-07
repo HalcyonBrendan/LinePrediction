@@ -153,8 +153,8 @@ class BettingDB():
         query_string = """SELECT id FROM game_ids 
             WHERE home_team = \'{0}\' 
             AND away_team = \'{1}\'
-            AND game_time < {2}+4500
-            AND game_time > {2}-4500
+            AND game_time < {2}+12000
+            AND game_time > {2}-12000
             AND league = \'{3}\';""".format(game["home_team"],
             game["away_team"],game["game_time"], game["league"])
 
