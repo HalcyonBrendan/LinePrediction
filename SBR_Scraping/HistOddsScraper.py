@@ -30,7 +30,7 @@ class HistOddsScraper():
 if __name__ == "__main__":
 
 	# SET THIS:
-	league = "NHL"
+	league = "BPL"
 	season = 20152016
 
 	if league is "NBA":
@@ -75,7 +75,7 @@ if __name__ == "__main__":
 	
 
 	# Uncomment if you need to restart mid-season
-	start_date = 20151112
+	#start_date = 20151112
 	#end_date = 20140413
 
 	odds = HistOddsScraper(league,season,start_date,end_date)

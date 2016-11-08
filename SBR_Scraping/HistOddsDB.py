@@ -63,10 +63,13 @@ class HistOddsDB():
 			if book == "betcris": continue
 			for odd_counter in range(0,max(len(odds[book_counter]),len(opponent_odds[book_counter]))):
 				try:
-					odd = convert_odds(int(odds[book_counter][odd_counter]),"american","decimal")
-					opponentOdd = convert_odds(int(opponent_odds[book_counter][odd_counter]),"american","decimal")
+					odd = float(odds[book_counter][odd_counter])
+					opponentOdd = float(opponent_odds[book_counter][odd_counter])
+					#odd = convert_odds(int(odds[book_counter][odd_counter]),"american","decimal")
+					#opponentOdd = convert_odds(int(opponent_odds[book_counter][odd_counter]),"american","decimal")
 					if not draw_odds is None:
-						drawOdd = convert_odds(int(draw_odds[book_counter][odd_counter]),"american","decimal")
+						drawOdd = float(draw_odds[book_counter][odd_counter])
+						#drawOdd = convert_odds(int(draw_odds[book_counter][odd_counter]),"american","decimal")
 				except:
 					print "Problem adding odds to DB. Continuing..."
 					continue
@@ -187,11 +190,15 @@ def translate_name(long_form, league):
 # Converts odds from currentType to desiredType (can be "american" or "decimal")
 def convert_odds(odds, currentType, desiredType):
 	if currentType == "american":
+		# Check that the current type is as claimed
+		if abs(odds) < 100: return odds
+		# Now convert
 		if odds > 0:
-			convertedOdds = 1+odds/100.
+			convertedOdds = 1.+float(odds)/100.
 		else:
-			convertedOdds = 1-100./odds
+			convertedOdds = 1.-100./float(odds)
 	elif currentType == "decimal":
+		if abs(odds) >= 100: return odds
 		if odds >= 2:
 			convertedOdds = (odds-1)*100.
 		else:
