@@ -30,8 +30,8 @@ class HistOddsScraper():
 if __name__ == "__main__":
 
 	# SET THIS:
-	league = "BPL"
-	season = 20152016
+	league = "NHL"
+	season = 20132014
 
 	if league is "NBA":
 		if season == 20152016:

@@ -4,10 +4,10 @@ from config import CONFIG as config
 
 class StatsDB():
 
-	def __init__(self,sport):
+	def __init__(self,league):
 		self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",user="root", db="halcyonlines")
 		self.cursor = self.db.cursor()
-		self.sport = sport
+		self.league = league
 
 	def execute_command(self, query_string):
 		self.cursor.execute(query_string)

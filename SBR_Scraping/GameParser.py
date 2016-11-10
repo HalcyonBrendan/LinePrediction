@@ -83,16 +83,22 @@ class GameParser():
 			# Get each odds cell
 			odds_cells = moneyline_box.findAll("tr", {"class": "info_line_alternate1"})
 
+			# Do some indexing stuff because SBR is stupid and behaves different for soccer than other sports
+			away_ind = 1
+			home_ind = 2
+			if self.league in ['BPL', 'FRA']:
+				away_ind = 2
+				home_ind = 1
 			for cell in odds_cells:
 				self.line_times[bookCount].append(cell.contents[0].contents[0].strip())
 				# Watch for cases where one side of the line is missing
 				try:
-					self.away_lines[bookCount].append(convert_odds(int(cell.contents[1].contents[0].strip()),"american","decimal"))
+					self.away_lines[bookCount].append(convert_odds(int(cell.contents[away_ind].contents[0].strip()),"american","decimal"))
 				except:
 					#print "Problem scraping line - most likely SBR is missing one side. Continuing..."
 					continue	
 				try:
-					self.home_lines[bookCount].append(convert_odds(int(cell.contents[2].contents[0].strip()),"american","decimal"))
+					self.home_lines[bookCount].append(convert_odds(int(cell.contents[home_ind].contents[0].strip()),"american","decimal"))
 				except:
 					#print "Problem scraping line - most likely SBR is missing one side. Continuing..."
 					# Get rid of last list element of away_lines list, which was added properly

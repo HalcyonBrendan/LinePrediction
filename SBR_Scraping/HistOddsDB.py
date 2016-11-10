@@ -107,7 +107,8 @@ class HistOddsDB():
 			self.create_ids_table()
 
 		print "Making new id"
-
+		# Sleep for a short time to make sure DB is updated
+		time.sleep(0.05)
 		self.cursor.execute("""SELECT MAX(gameID) AS gameID FROM {0}_Moneylines{1}""".format(self.league,self.season))
 		largest_id = self.cursor.fetchone()[0]
 
@@ -144,9 +145,7 @@ class HistOddsDB():
 			month = int((event_date%10000-day)/100)
 			year = int((event_date-month-day)/10000)
 			am_or_pm = str(event_time[-1])
-			hour = (int(event_time[0:-4])-3)%12+12*int(am_or_pm=='p') # Convert to PT
-			if hour >= 21 and am_or_pm == 'p': hour -= 12
-			if hour >= 9 and am_or_pm == 'a': hour += 12
+			hour = (int(event_time[0:-4]))%12+12*int(am_or_pm=='p')
 			minute = int(event_time[-3:-1])
 			t = datetime.datetime(year, month, day, hour, minute)
 			time_in_secs = (t-datetime.datetime(1970,01,01)).total_seconds()
@@ -159,9 +158,7 @@ class HistOddsDB():
 			month = int(event_time[0:2])
 			day = int(event_time[3:5])
 			am_or_pm = str(event_time[-2:])
-			hour = (int(event_time[6:8])-3)%12+12*(am_or_pm=='PM') # Convert to PT
-			if hour >= 21 and am_or_pm == 'PM': hour -= 12
-			if hour >= 9 and am_or_pm == 'AM': hour += 12
+			hour = (int(event_time[6:8]))%12+12*(am_or_pm=='PM')
 			minute = int(event_time[9:11])
 			t = datetime.datetime(year, month, day, hour, minute)
 			time_in_secs = (t-datetime.datetime(1970,01,01)).total_seconds()
@@ -204,5 +201,10 @@ def convert_odds(odds, currentType, desiredType):
 		else:
 			convertedOdds = 100./(1-odds)
 	return convertedOdds
+
+
+if __name__ == "__main__":
+	hodb = HistOddsDB('NHL',20152016)
+
 
 
