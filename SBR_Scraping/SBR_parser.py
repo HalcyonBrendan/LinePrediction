@@ -69,6 +69,8 @@ class day_parser():
 			webpage = "http://www.sportsbookreview.com/betting-odds/nba-basketball/money-line/?date={0}".format(self.date)
 		elif self.league == "BPL":
 			webpage = "http://www.sportsbookreview.com/betting-odds/soccer/?date={0}&leagueId=english-premier-league".format(self.date)
+		elif self.league == "FRA":
+			webpage = "http://www.sportsbookreview.com/betting-odds/soccer/?leagueId=ligue1&date={0}".format(self.date)
 		self.driver.get(webpage)
 		#print "Pausing for 2 seconds. Close any popups."
 		#time.sleep(2)

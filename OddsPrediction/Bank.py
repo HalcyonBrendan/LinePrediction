@@ -32,7 +32,8 @@ class Bank(object):
 		self.bankroll -= bet_size
 		outcome = self.check_bet_outcome(season, game_id, team, choice)
 		if outcome == 1:
-			self.bankroll += bet_size * thresh
+			#self.bankroll += bet_size * thresh
+			self.bankroll += bet_size * line
 			print "After betting ${0} on \'{1}\' and winning at {2}, your new bankroll is: ${3}".format(bet_size, choice, line, self.bankroll)
 		elif outcome == -1:
 			self.bankroll += bet_size
@@ -101,8 +102,8 @@ class Data(object):
 				away_odds = []
 				draw_odds = []
 				if not self.hasDraws:
-					#query = "SELECT odds, opponentOdds FROM {0}_Moneylines{1} WHERE gameID={2} AND team=\'{3}\' AND bookName=\'{4}\' ORDER BY pollTime;".format(self.bank.league,season, gid, home_team, self.bank.book)
-					query = "SELECT odds, opponentOdds FROM {0}_Moneylines{1} WHERE gameID={2} AND team=\'{3}\' AND bookName=\'{4}\';".format(self.bank.league,season, gid, home_team, self.bank.book)				
+					query = "SELECT odds, opponentOdds FROM {0}_Moneylines{1} WHERE gameID={2} AND team=\'{3}\' AND bookName=\'{4}\' ORDER BY pollTime;".format(self.bank.league,season, gid, home_team, self.bank.book)
+					#query = "SELECT odds, opponentOdds FROM {0}_Moneylines{1} WHERE gameID={2} AND team=\'{3}\' AND bookName=\'{4}\';".format(self.bank.league,season, gid, home_team, self.bank.book)				
 				else:
 					query = "SELECT odds, opponentOdds, drawOdds FROM {0}_Moneylines{1} WHERE gameID={2} AND team=\'{3}\' AND bookName=\'{4}\' ORDER BY pollTime;".format(self.bank.league,season, gid, home_team, self.bank.book)
 					#query = "SELECT odds, opponentOdds, drawOdds FROM {0}_Moneylines{1} WHERE gameID={2} AND team=\'{3}\' AND bookName=\'{4}\';".format(self.bank.league,season, gid, home_team, self.bank.book)
@@ -132,9 +133,10 @@ class Data(object):
 				max_odd = 25
 				min_odd = 1.01
 				#print "home odds"
+				'''
 				for odd in home_odds:
 					#print odd
-					if odd >= home_thresh and odd < max_odd and odd > min_odd:
+					if odd >= home_thresh and odd < home_thresh*2 and odd > min_odd:
 						print "Game: ", gid
 						print "Home thresh / home odds: ", home_thresh, " / ", odd
 						self.bank.place_bet(season,gid,home_team,home_team,odd, home_thresh)
@@ -143,7 +145,7 @@ class Data(object):
 				#print "away odds"
 				for odd in away_odds:
 					#print odd
-					if odd >= away_thresh and odd < max_odd and odd > min_odd:
+					if odd >= away_thresh and odd < away_thresh*2 and odd > min_odd:
 						print "Game: ", gid
 						print "Away thresh / away odds: ", away_thresh, " / ", odd
 						self.bank.place_bet(season,gid,away_team,away_team,odd,away_thresh)
@@ -153,21 +155,23 @@ class Data(object):
 				if self.hasDraws:
 					#print odd
 					for odd in draw_odds:
-						if odd >= draw_thresh and odd < max_odd and odd > min_odd:
+						if odd >= draw_thresh and odd < draw_thresh*2 and odd > min_odd:
 							print "Game: ", gid
 							print "Draw thresh / draw odds: ", draw_thresh, " / ", odd
 							self.bank.place_bet(season,gid,home_team,"DRAW",odd,draw_thresh)
 							bet_count += 1
 							break
+				'''
+				self.bank.place_bet(season,gid,home_team,"DRAW",draw_odds[-1],draw_thresh)
 
 		print bet_count
 
 if __name__ == "__main__":
 	# TO SET
-	league = 'NHL'
-	seasons = [20142015]
+	league = 'FRA'
+	seasons = [20132014]
 	hasDraws = 0
-	if league in ['BPL']: hasDraws = 1
+	if league in ['BPL','FRA']: hasDraws = 1
 
 	bank = Bank(league=league,use_relative_bet=False)
 	data = Data(bank, hasDraws, seasons=seasons)

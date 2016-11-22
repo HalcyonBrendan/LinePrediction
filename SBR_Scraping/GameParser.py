@@ -11,7 +11,7 @@ class GameParser():
 		self.driver = driver
 		self.league = league
 		# If draw odds aren't available need margin to compute from team lines
-		if self.league is "BPL": 
+		if self.league in ["BPL","FRA"]:
 			self.margin = .0205
 		self.date = date
 		self.game_time = ""
@@ -27,7 +27,7 @@ class GameParser():
 	def parse_game(self,game_html):
 		# Check it is a league with draws
 		hasDraw = 0
-		if self.league is "BPL":
+		if self.league in ["BPL","FRA"]:
 			hasDraw = 1
 
 		self.game_time = game_html.find("div", {"class": "el-div eventLine-time"}).find("div", {"class": re.compile("eventLine-book-value")}).contents[0]
@@ -61,7 +61,7 @@ class GameParser():
 			self.home_lines.append([])
 			bookCount += 1
 			# For BPL for now ignore anything that isn't pinnacle
-			if self.league is "BPL" and not self.books[bookCount] in ['Pinnacle','Pinnacle Sports']: continue
+			if self.league in ["BPL","FRA"] and not self.books[bookCount] in ['Pinnacle','Pinnacle Sports']: continue
 			if self.books[bookCount] in ['betcris', 'BetCris']: continue
 			# Click on odds to show line history
 			try:

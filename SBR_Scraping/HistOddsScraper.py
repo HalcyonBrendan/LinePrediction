@@ -30,8 +30,8 @@ class HistOddsScraper():
 if __name__ == "__main__":
 
 	# SET THIS:
-	league = "NHL"
-	season = 20132014
+	league = "FRA"
+	season = 20152016
 
 	if league is "NBA":
 		if season == 20152016:
@@ -72,10 +72,23 @@ if __name__ == "__main__":
 		elif season == 20132014:
 			start_date = 20130817
 			end_date = 20140511
+	elif league is "FRA": 
+		if season == 20162017:
+			start_date = 20160812
+			end_date = 20161105
+		elif season == 20152016:
+			start_date = 20150807
+			end_date = 20160514
+		elif season == 20142015:
+			start_date = 20140808
+			end_date = 20150523
+		elif season == 20132014:
+			start_date = 20130809
+			end_date = 20140517
 	
 
 	# Uncomment if you need to restart mid-season
-	#start_date = 20151112
+	#start_date = 20140517
 	#end_date = 20140413
 
 	odds = HistOddsScraper(league,season,start_date,end_date)

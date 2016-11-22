@@ -22,7 +22,7 @@ class HistOddsDB():
 
 	def add_game_to_DB(self,game):
 		hasDraws = 0
-		if self.league is "BPL": hasDraws = 1
+		if self.league in ["BPL","FRA"]: hasDraws = 1
 		if not self.moneylines_table_exists():
 			print "{0}_Moneylines{1} does not exist. Creating table!".format(self.league,self.season)
 			self.create_moneylines_table(hasDraws)
