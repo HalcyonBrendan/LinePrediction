@@ -5,7 +5,7 @@ from config import CONFIG as config
 class HistOddsDB():
 
 	def __init__(self,league,season):
-		self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",user="root", db="halcyonlines")
+		self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",user="root", db="halcyonnhl")
 		self.cursor = self.db.cursor()
 		self.league = league
 		self.season = season
@@ -24,7 +24,7 @@ class HistOddsDB():
 		hasDraws = 0
 		if self.league in ["BPL","FRA"]: hasDraws = 1
 		if not self.moneylines_table_exists():
-			print "{0}_Moneylines{1} does not exist. Creating table!".format(self.league,self.season)
+			#print "{0}_Moneylines{1} does not exist. Creating table!".format(self.league,self.season)
 			self.create_moneylines_table(hasDraws)
 		game["time"] = self.translate_datetime(game["date"],game["time"],1)
 		game["home_team"] = translate_name(game["home_team"],self.league)
@@ -76,15 +76,33 @@ class HistOddsDB():
 				pollTime = self.translate_datetime(game_date,poll_times[book_counter][odd_counter],2)
 				# Construct query for adding game, then add it
 				if draw_odds is None:
-					query_string = """INSERT INTO {0}_Moneylines{1} (gameID,date,pollTime,gameTime,team,teamScore,odds,opponent,opponentScore,opponentOdds,winner,bookName) VALUES ({2},{3},{4},{5},\'{6}\',{7},{8},\'{9}\',{10},{11},\'{12}\',\'{13}\');""".format(self.league,self.season,game_id,game_date,int(pollTime),int(gameTime),team,teamScore,odd,opponent,opponentScore,opponentOdd,winner,translate_name(book,"books"))
+					if self.league == "NHL":
+						query_string = """INSERT INTO Moneylines{0} (gameID,date,pollTime,gameTime,team,teamScore,odds,opponent,opponentScore,opponentOdds,winner,bookName) VALUES ({1},{2},{3},{4},\'{5}\',{6},{7},\'{8}\',{9},{10},\'{11}\',\'{12}\');""".format(self.season,game_id,game_date,int(pollTime),int(gameTime),team,teamScore,odd,opponent,opponentScore,opponentOdd,winner,translate_name(book,"books"))
+					else:
+						query_string = """INSERT INTO {0}_Moneylines{1} (gameID,date,pollTime,gameTime,team,teamScore,odds,opponent,opponentScore,opponentOdds,winner,bookName) VALUES ({2},{3},{4},{5},\'{6}\',{7},{8},\'{9}\',{10},{11},\'{12}\',\'{13}\');""".format(self.league,self.season,game_id,game_date,int(pollTime),int(gameTime),team,teamScore,odd,opponent,opponentScore,opponentOdd,winner,translate_name(book,"books"))
 				else:
 					query_string = """INSERT INTO {0}_Moneylines{1} (gameID,date,pollTime,gameTime,team,teamScore,odds,opponent,opponentScore,opponentOdds,drawOdds,winner,bookName) VALUES ({2},{3},{4},{5},\'{6}\',{7},{8},\'{9}\',{10},{11},{12},\'{13}\',\'{14}\');""".format(self.league,self.season,game_id,game_date,int(pollTime),int(gameTime),team,teamScore,odd,opponent,opponentScore,opponentOdd,drawOdd,winner,translate_name(book,"books"))
-				print query_string
+				#print query_string
 				self.execute_command(query_string)
 		return 0
 
 	def get_game_id(self, game):
-		# we can assume that all the games in the id database are in the next 2 days
+		# if getting NHL for halcyon analytics, get game id from games table in halcyonnhl db. otherwise, use gameIDs table in other db
+		if self.league == "NHL":
+			query_string = """SELECT gameID FROM Games{0} WHERE team=\'{1}\' AND opponent=\'{2}\' AND date={3};""".format(self.season,game["home_team"],game["away_team"],game["date"])
+			try:
+				result = int(self.execute_query(query_string)[0][0])
+			except:
+				# Look out for PHX->ARI naming conflicts (observed for SBR)
+				if game["home_team"] == "ARI":
+					query_string = """SELECT gameID FROM Games{0} WHERE team=\'{1}\' AND opponent=\'{2}\' AND date={3};""".format(self.season,"PHX",game["away_team"],game["date"])
+					result = int(self.execute_query(query_string)[0][0])
+				elif game["away_team"] == "ARI":
+					query_string = """SELECT gameID FROM Games{0} WHERE team=\'{1}\' AND opponent=\'{2}\' AND date={3};""".format(self.season,game["home_team"],"PHX",game["date"])
+					result = int(self.execute_query(query_string)[0][0])
+				else: 
+					result = -1
+			return result
 
 		if not self.ids_table_exists():
 			print "game_ids table does not exist"
@@ -106,7 +124,7 @@ class HistOddsDB():
 			print "gameIDs table does not exist"
 			self.create_ids_table()
 
-		print "Making new id"
+		#print "Making new id"
 		# Sleep for a short time to make sure DB is updated
 		time.sleep(0.05)
 		self.cursor.execute("""SELECT MAX(gameID) AS gameID FROM {0}_Moneylines{1}""".format(self.league,self.season))
@@ -165,18 +183,27 @@ class HistOddsDB():
 			return time_in_secs
 
 	def create_moneylines_table(self,hasDraws):
-		if hasDraws == 0:
+		if self.league == "NHL":
+			query_string = """CREATE TABLE Moneylines{0} (gameID INT, date INT, pollTime INT, gameTime INT, team TEXT, teamScore INT, odds DOUBLE(8,4), opponent TEXT, opponentScore INT, opponentOdds DOUBLE(8,4), winner TEXT, bookName TEXT)""".format(self.season)
+		elif hasDraws == 0:
 			query_string = """CREATE TABLE {0}_Moneylines{1} (gameID INT, date INT, pollTime INT, gameTime INT, team TEXT, teamScore INT, odds DOUBLE(8,4), opponent TEXT, opponentScore INT, opponentOdds DOUBLE(8,4), winner TEXT, bookName TEXT)""".format(self.league,self.season)
 		elif hasDraws == 1:
 			query_string = """CREATE TABLE {0}_Moneylines{1} (gameID INT, date INT, pollTime INT, gameTime INT, team TEXT, teamScore INT, odds DOUBLE(8,4), opponent TEXT, opponentScore INT, opponentOdds DOUBLE(8,4), drawOdds DOUBLE(8,4), winner TEXT, bookName TEXT)""".format(self.league,self.season)
 		self.execute_command(query_string)
 
 	def moneylines_table_exists(self):
-		stmt = "SHOW TABLES LIKE \'{0}_Moneylines{1}\'".format(self.league,self.season)
-		self.cursor.execute(stmt)
-		result = self.cursor.fetchone()
-		if result: return True
-		else: return False
+		if self.league == "NHL":
+			stmt = "SHOW TABLES LIKE \'Moneylines{0}\'".format(self.season)
+			self.cursor.execute(stmt)
+			result = self.cursor.fetchone()
+			if result: return True
+			else: return False
+		else:
+			stmt = "SHOW TABLES LIKE \'{0}_Moneylines{1}\'".format(self.league,self.season)
+			self.cursor.execute(stmt)
+			result = self.cursor.fetchone()
+			if result: return True
+			else: return False
 
 def translate_name(long_form, league):
 	for short_form in config["short_names"][league]:

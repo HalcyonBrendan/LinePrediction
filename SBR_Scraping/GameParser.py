@@ -62,6 +62,7 @@ class GameParser():
 			bookCount += 1
 			# For BPL for now ignore anything that isn't pinnacle
 			if self.league in ["BPL","FRA"] and not self.books[bookCount] in ['Pinnacle','Pinnacle Sports']: continue
+			if self.league in ["NHL","NBA"] and not self.books[bookCount] in ['5Dimes','Pinnacle Sports','bet365','SportsInteraction','Bodog']: continue
 			if self.books[bookCount] in ['betcris', 'BetCris']: continue
 			# Click on odds to show line history
 			try:
@@ -118,7 +119,6 @@ class GameParser():
 
 		game = {"date": self.date, "time": self.game_time, "away_team": self.away_team, "home_team": self.home_team, "away_score": away_score, "home_score": home_score, "books": self.books, "line_times": self.line_times, "away_lines": self.away_lines, "home_lines": self.home_lines, "draw_lines": self.draw_lines}
 		return game
-
 
 	def compute_draw_lines(self):
 		self.draw_lines = []

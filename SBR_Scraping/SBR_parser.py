@@ -19,11 +19,11 @@ class SBR_parser():
 
 
 	def get_odds(self):
-		print "Parsing Sportsbook Review for historical ", self.league, " odds from ", self.start_date, " to ", self.end_date
+		#print "Parsing Sportsbook Review for historical ", self.league, " odds from ", self.start_date, " to ", self.end_date
 
 		curr_date = self.start_date
 		while curr_date <= self.end_date:
-			print "Getting odds data for ", curr_date
+			#print "Getting odds data for ", curr_date
 			day_games = self.day_parser.parse_day(curr_date)
 			curr_date = self.increment_date(curr_date)
 			yield day_games
@@ -61,7 +61,7 @@ class day_parser():
 		self.games = []
 		self.books = []
 
-		print "Obtaining webpage for date: ", self.date
+		#print "Obtaining webpage for date: ", self.date
 
 		if self.league == "NHL":
 			webpage = "http://www.sportsbookreview.com/betting-odds/nhl-hockey/?date={0}".format(self.date)
@@ -75,7 +75,7 @@ class day_parser():
 		#print "Pausing for 2 seconds. Close any popups."
 		#time.sleep(2)
 
-		print "HTML obtained. Scraping site."
+		#print "HTML obtained. Scraping site."
 		soup = BeautifulSoup(self.driver.page_source, "html.parser")
 		# Get book names (just first ten for now)
 		books_html = soup.find("ul", {"id": "booksCarousel"}).findAll("a", {"id": "bookName"})
