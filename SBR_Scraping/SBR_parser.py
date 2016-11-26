@@ -8,13 +8,14 @@ import GameParser
 
 class SBR_parser():
 
-	def __init__(self,start_date,end_date,league):
+	def __init__(self,start_date,end_date,league,season):
 		
 		self.driver = webdriver.Chrome()
-		self.day_parser = day_parser(self.driver,league)
+		self.league = league
+		self.season = season
+		self.day_parser = day_parser(self.driver,league,season)
 		self.start_date = start_date
 		self.end_date = end_date
-		self.league = league
 		#self.games = []
 
 
@@ -47,13 +48,14 @@ class SBR_parser():
 
 class day_parser():
 
-	def __init__(self,driver,league):
+	def __init__(self,driver,league,season):
 		self.date = 0
 		self.driver = driver
 		self.game_parser = []
 		self.games = []
 		self.books = []
 		self.league = league
+		self.season = season
 
 	def parse_day(self,curr_date):
 
@@ -89,7 +91,7 @@ class day_parser():
 		# Sometimes cells have different class name
 		game_cells = soup.findAll("div", {"class": re.compile("event-holder*")})
 		for cell in game_cells:
-			self.game_parser = GameParser.GameParser(self.driver,self.date,self.books,self.league)
+			self.game_parser = GameParser.GameParser(self.driver,self.date,self.books,self.league,self.season)
 			game = self.game_parser.parse_game(cell)
 			if game == -1: continue
 			self.games.append(game)

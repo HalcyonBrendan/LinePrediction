@@ -27,17 +27,12 @@ class HistOddsDB():
 			#print "{0}_Moneylines{1} does not exist. Creating table!".format(self.league,self.season)
 			self.create_moneylines_table(hasDraws)
 		game["time"] = self.translate_datetime(game["date"],game["time"],1)
-		game["home_team"] = translate_name(game["home_team"],self.league)
-		game["away_team"] = translate_name(game["away_team"],self.league)
-		if game["home_team"] == "unknown" or game["away_team"] == "unknown":
-			print "Unknown team on date: ", game["date"]
-			print "Continuing to next game."
-			return 1
+
 		game["id"] = self.get_game_id(game)
 		if game["id"] == -1:
 			print "Could not find id for game on ", game["date"], " between ", game["home_team"], " and ", game["away_team"]
 			print "Continuing to next game."
-			return 1
+			return -1
 		if game["home_score"] > game["away_score"]: game["winner"] = game["home_team"]
 		elif game["away_score"] > game["home_score"]: game["winner"] = game["away_team"]
 		elif game["home_score"] == game["away_score"]: game["winner"] = "DRAW"
@@ -52,7 +47,7 @@ class HistOddsDB():
 
 
 		if add_home or add_away:
-			return 1
+			return -1
 		return 0
 
 	def add_team_odds_to_DB(self,game_id,team,teamScore,opponent,opponentScore,books,gameTime,game_date,winner,odds,opponent_odds,draw_odds,poll_times):
@@ -93,15 +88,7 @@ class HistOddsDB():
 			try:
 				result = int(self.execute_query(query_string)[0][0])
 			except:
-				# Look out for PHX->ARI naming conflicts (observed for SBR)
-				if game["home_team"] == "ARI":
-					query_string = """SELECT gameID FROM Games{0} WHERE team=\'{1}\' AND opponent=\'{2}\' AND date={3};""".format(self.season,"PHX",game["away_team"],game["date"])
-					result = int(self.execute_query(query_string)[0][0])
-				elif game["away_team"] == "ARI":
-					query_string = """SELECT gameID FROM Games{0} WHERE team=\'{1}\' AND opponent=\'{2}\' AND date={3};""".format(self.season,game["home_team"],"PHX",game["date"])
-					result = int(self.execute_query(query_string)[0][0])
-				else: 
-					result = -1
+				result = -1
 			return result
 
 		if not self.ids_table_exists():
@@ -204,6 +191,18 @@ class HistOddsDB():
 			result = self.cursor.fetchone()
 			if result: return True
 			else: return False
+
+	def odds_already_added(self,team,opponent,game_date):
+		if self.league == "NHL":
+			query_string = """SELECT COUNT(*) FROM Moneylines{0} WHERE team=\'{1}\' AND opponent=\'{2}\' AND date={3};""".format(self.season,team,opponent,game_date)
+		else:
+			query_string = """SELECT COUNT(*) FROM {0}_Moneylines{1} WHERE team=\'{2}\' AND opponent=\'{3}\' AND date={4};""".format(self.league,self.season,team,opponent,game_date)
+		try:
+			result = int(self.execute_query(query_string)[0][0])
+		except:
+			return False
+		if result > 0: return True
+		return False
 
 def translate_name(long_form, league):
 	for short_form in config["short_names"][league]:

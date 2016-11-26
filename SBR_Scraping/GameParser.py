@@ -3,17 +3,21 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 import time, re
+import HistOddsDB
+from config import CONFIG as config
 
 class GameParser():
 
-	def __init__(self,driver,date,books,league):
+	def __init__(self,driver,game_date,books,league,season):
 
 		self.driver = driver
 		self.league = league
+		self.season = season
+		self.histDB = HistOddsDB.HistOddsDB(self.league,self.season)
 		# If draw odds aren't available need margin to compute from team lines
 		if self.league in ["BPL","FRA"]:
 			self.margin = .0205
-		self.date = date
+		self.game_date = game_date
 		self.game_time = ""
 		self.home_team = ""
 		self.away_team = ""
@@ -34,26 +38,36 @@ class GameParser():
 		#print "Game time: ", self.game_time
 
 		team_names = game_html.findAll("span", {"class": "team-name"}) 
-		self.away_team = team_names[0].contents[0].contents[0]
+		self.away_team = translate_name(team_names[0].contents[0].contents[0],self.league)
 		#print "Away team: ", self.away_team
-		self.home_team = team_names[1].contents[0].contents[0]
+		self.home_team = translate_name(team_names[1].contents[0].contents[0],self.league)
 		#print "Home team: ", self.home_team
 
-		# For NBA games, parse score and then minimize score content
-		# Although this should work for other leagues as well
-		#if self.league == "NBA":
-			
+		# Make sure SBR didn't stick a funny (i.e. all-star) game into schedule
+		if self.home_team == "unknown" or self.away_team == "unknown":
+			print "Unknown team on date: ", self.game_date
+			print "Continuing to next game."
+			return -2
+		# SBR back-changed all PHX games to ARI, but we didn't
+		if self.league == "NHL" and self.season < 20142015:
+			if self.home_team == "ARI": self.home_team = "PHX"
+			if self.away_team == "ARI": self.away_team = "PHX"
+
+		# Check if game odds have been previously added to DB to save time and keep DB orderly
+		odds_there = self.histDB.odds_already_added(self.home_team,self.away_team,self.game_date)
+		if odds_there: 
+			#print "Game odds already added for ", self.away_team, " at ", self.home_team, " on ", self.game_date
+			return -1
+
+		# TODO: need to figure out score minimizer to get Will Hill and some 5Dimes odds for NBA			
 		score_content = game_html.find("div", {"class": "score-content"})
 		team_scores = score_content.findAll("div", {"class": "score-periods"})
 		away_score = int(team_scores[0].find("span", {"class": "current-score"}).contents[0])
 		home_score = int(team_scores[1].find("span", {"class": "current-score"}).contents[0])
 		#print away_score, " ", home_score
 
-			#time.sleep(15)
-
 		book_html = game_html.findAll("div", {"class": "el-div eventLine-book"})
 
-		broken_game_flag = 0
 		bookCount = -1
 		for book in book_html:
 			self.line_times.append([])
@@ -70,7 +84,6 @@ class GameParser():
 			except Exception as e:
 				#print e
 				print "Could not get line histories for ", self.books[bookCount], ". Continuing to next book."
-				#broken_game_flag = 1
 				continue
 			#time.sleep(1)
 			try:
@@ -112,12 +125,11 @@ class GameParser():
 			except:
 				continue
 
-		if broken_game_flag: return -1
 
 		# For games with draws, need to compute draw lines since they aren't available on SBR
 		if hasDraw: self.compute_draw_lines()
 
-		game = {"date": self.date, "time": self.game_time, "away_team": self.away_team, "home_team": self.home_team, "away_score": away_score, "home_score": home_score, "books": self.books, "line_times": self.line_times, "away_lines": self.away_lines, "home_lines": self.home_lines, "draw_lines": self.draw_lines}
+		game = {"date": self.game_date, "time": self.game_time, "away_team": self.away_team, "home_team": self.home_team, "away_score": away_score, "home_score": home_score, "books": self.books, "line_times": self.line_times, "away_lines": self.away_lines, "home_lines": self.home_lines, "draw_lines": self.draw_lines}
 		return game
 
 	def compute_draw_lines(self):
@@ -129,6 +141,12 @@ class GameParser():
 			for aLine,hLine in zip(self.away_lines[bookCount],self.home_lines[bookCount]):
 				self.draw_lines[bookCount].append(float(1./(1.+self.margin-1./aLine-1./hLine)))
 
+
+def translate_name(long_form, league):
+	for short_form in config["short_names"][league]:
+		if long_form in config["short_names"][league][short_form]:
+			return short_form
+	return "unknown"
 
 # Converts odds from currentType to desiredType (can be "american" or "decimal")
 def convert_odds(odds, currentType, desiredType):

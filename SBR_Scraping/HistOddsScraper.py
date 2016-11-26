@@ -10,7 +10,7 @@ class HistOddsScraper():
 		self.league = league
 		self.start_date = start_date
 		self.end_date = end_date
-		self.parser = SBR_parser.SBR_parser(self.start_date,self.end_date,self.league)
+		self.parser = SBR_parser.SBR_parser(self.start_date,self.end_date,self.league,self.season)
 		self.histDB = HistOddsDB.HistOddsDB(self.league,self.season)
 
 	def run(self):
@@ -21,6 +21,7 @@ class HistOddsScraper():
 			for game in day:
 				#print "Adding game to DB: "
 				#print game
+				if game in [-1,-2]: continue
 				add_to_DB = self.histDB.add_game_to_DB(game)
 				if not add_to_DB == 0:
 					print "Problem adding game: ", game
@@ -33,6 +34,7 @@ def args_parser(args_list):
 		print "[league]: Optional argument - currently compatible with \"NHL\" (default), \"NBA\", \"BPL\", and \"FRA\""
 		print "[start_date]: Optional argument, in yyyymmdd format, specifying date at which to start scraping. Regular season start date is default"
 		print "[end_date]: Optional argument, in yyyymmdd format, specifying date at which to end scraping. Regular season end date is default\n"
+		print "NOTE: Games already entered in DB will not be overwritten and must be deleted if you wish to re-scrape and save the odds.\n"
 		exit()
 	elif len(args_list) == 2:
 		if not args_list[1].isdigit(): 
