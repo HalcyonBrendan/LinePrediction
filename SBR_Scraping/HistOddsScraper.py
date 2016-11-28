@@ -1,6 +1,7 @@
-import re, time, sys, datetime, math, signal, random
+import re, time, sys, math, signal, random
 import SBR_parser
 import HistOddsDB
+from datetime import date, timedelta
 
 class HistOddsScraper():
 
@@ -42,8 +43,6 @@ def list_seasons(start_season,end_season):
 		ts_string = str(temp_season)
 	seasons_list.append(end_season)
 	return seasons_list
-
-
 
 
 def args_parser(args_list):
@@ -102,10 +101,9 @@ def args_parser(args_list):
 if __name__ == "__main__":
 
 	seasons, league, start_date_override, end_date_override = args_parser(sys.argv)
+	yester_date = int((date.today() - timedelta(1)).strftime('%Y%m%d'))
 
 	for season in seasons:
-
-		print "Scraping odds for ", season, " ", league, " season!"
 
 		if league is "NBA":
 			if season == 20152016:
@@ -124,6 +122,9 @@ if __name__ == "__main__":
 				start_date = 20111225
 				end_date = 20120426
 		elif league is "NHL":
+			if season == 20162017:
+				start_date = 20161012
+				end_date = yester_date
 			if season == 20152016:
 				start_date = 20151007
 				end_date = 20160410
@@ -174,13 +175,16 @@ if __name__ == "__main__":
 		if end_date_override > 0 and (str(season)[0:4] == str(end_date_override)[0:4] or str(season)[4:8] == str(end_date_override)[0:4]):
 			end_date = end_date_override
 		
+		print "\rScraping odds for ", season, " ", league, " season from ", start_date, " to ", end_date,
+		sys.stdout.flush()
+
 		# Uncomment if you need to restart mid-season
 		#start_date = 20140517
 		#end_date = 20140413
 		
-		print league, " ", season, " ", start_date, " ", end_date
 		odds = HistOddsScraper(league,season,start_date,end_date)
 		odds.run()
 
-	print "Odds successfully scraped and stored in database!"
+	print "\nOdds successfully scraped and stored in database!"
+
 
