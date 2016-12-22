@@ -5,7 +5,7 @@ from config import CONFIG as config
 class HistOddsDB():
 
 	def __init__(self,league,season):
-		self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",user="root", db="halcyonnhl")
+		self.db = MySQLdb.connect(passwd=config["mysql"]["pw"],host="localhost",user="root", db="halcyonlines")
 		self.cursor = self.db.cursor()
 		self.league = league
 		self.season = season

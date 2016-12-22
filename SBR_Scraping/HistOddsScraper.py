@@ -2,6 +2,7 @@ import re, time, sys, math, signal, random
 import SBR_parser
 import HistOddsDB
 from datetime import date, timedelta
+from config import CONFIG as config
 
 class HistOddsScraper():
 
@@ -48,7 +49,7 @@ def list_seasons(start_season,end_season):
 def args_parser(args_list):
 	if len(args_list) == 1:
 		print "\nRun HistOddsScraper.py as \">>> python HistOddsScraper.py [start_season] [end_season] -l [league] -s [start_date] -e [end_date]\"\n"
-		print "[start_season]: Mandatory argument, in yyyyyyyy format, specifying start season for [league]. EG. 20142015"
+		print "[start_season]: Mandatory argument, in yyyyyyyy format (or yyyy for MLB), specifying start season for [league]. EG. 20142015"
 		print "[end_season]: Optional argument, must immediately follow [start_season] in yyyyyyyy format. If not included only [start_season] is run."
 		print "[league]: Optional argument - currently compatible with \"NHL\" (default), \"NBA\", \"BPL\", and \"FRA\""
 		print "[start_date]: Optional argument, in yyyymmdd format, specifying date at which to start scraping. Regular season start date is default"
@@ -105,70 +106,36 @@ if __name__ == "__main__":
 
 	for season in seasons:
 
-		if league is "NBA":
-			if season == 20152016:
-				start_date = 20151027
-				end_date = 20160413
-			elif season == 20142015:
-				start_date = 20141028
-				end_date = 20150415
-			elif season == 20132014:
-				start_date = 20131029
-				end_date = 20140416
-			elif season == 20122013:
-				start_date = 20121030
-				end_date = 20130417
-			elif season == 20112012:
-				start_date = 20111225
-				end_date = 20120426
-		elif league is "NHL":
-			if season == 20162017:
-				start_date = 20161012
-				end_date = yester_date
-			if season == 20152016:
-				start_date = 20151007
-				end_date = 20160410
-			elif season == 20142015:
-				start_date = 20141008
-				end_date = 20150411
-			elif season == 20132014:
-				start_date = 20131001
-				end_date = 20140413
-			elif season == 20122013:
-				start_date = 20130119
-				end_date = 20130428
-			elif season == 20112012:
-				start_date = 20111006
-				end_date = 20120407
-			elif season == 20102011:
-				start_date = 20101007
-				end_date = 20110410
-		elif league is "BPL":
-			if season == 20162017:
-				start_date = 20160813
-				end_date = 20161105
-			elif season == 20152016:
-				start_date = 20150808
-				end_date = 20160517
-			elif season == 20142015:
-				start_date = 20140816
-				end_date = 20150524
-			elif season == 20132014:
-				start_date = 20130817
-				end_date = 20140511
-		elif league is "FRA": 
-			if season == 20162017:
-				start_date = 20160812
-				end_date = 20161105
-			elif season == 20152016:
-				start_date = 20150807
-				end_date = 20160514
-			elif season == 20142015:
-				start_date = 20140808
-				end_date = 20150523
-			elif season == 20132014:
-				start_date = 20130809
-				end_date = 20140517
+		start_date = config["season_dates"][league][str(season)]["start"]
+		end_date = config["season_dates"][league][str(season)]["end"]
+
+		# ADD THESE LEAGUE DATES TO CONFIG JSON FILE IF YOU WANT TO USE
+		#elif league is "BPL":
+		#	if season == 20162017:
+		#		start_date = 20160813
+		#		end_date = 20161105
+		#	elif season == 20152016:
+		#		start_date = 20150808
+		#		end_date = 20160517
+		#	elif season == 20142015:
+		#		start_date = 20140816
+		#		end_date = 20150524
+		#	elif season == 20132014:
+		#		start_date = 20130817
+		#		end_date = 20140511
+		#elif league is "FRA": 
+		#	if season == 20162017:
+		#		start_date = 20160812
+		#		end_date = 20161105
+		#	elif season == 20152016:
+		#		start_date = 20150807
+		#		end_date = 20160514
+		#	elif season == 20142015:
+		#		start_date = 20140808
+		#		end_date = 20150523
+		#	elif season == 20132014:
+		#		start_date = 20130809
+		#		end_date = 20140517
 
 		if start_date_override > 0 and str(season)[0:4] == str(start_date_override)[0:4]:
 			start_date = start_date_override

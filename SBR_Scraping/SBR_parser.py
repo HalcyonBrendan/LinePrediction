@@ -14,8 +14,8 @@ class SBR_parser():
 		self.league = league
 		self.season = season
 		self.day_parser = day_parser(self.driver,league,season)
-		self.start_date = start_date
-		self.end_date = end_date
+		self.start_date = int(start_date)
+		self.end_date = int(end_date)
 		#self.games = []
 
 
@@ -67,6 +67,8 @@ class day_parser():
 
 		if self.league == "NHL":
 			webpage = "http://www.sportsbookreview.com/betting-odds/nhl-hockey/?date={0}".format(self.date)
+		elif self.league == "MLB":
+			webpage = "http://www.sportsbookreview.com/betting-odds/mlb-baseball/?date={0}".format(self.date)
 		elif self.league == "NBA":
 			webpage = "http://www.sportsbookreview.com/betting-odds/nba-basketball/money-line/?date={0}".format(self.date)
 		elif self.league == "BPL":

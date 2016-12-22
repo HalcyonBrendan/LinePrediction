@@ -37,12 +37,11 @@ class GameParser():
 		self.game_time = game_html.find("div", {"class": "el-div eventLine-time"}).find("div", {"class": re.compile("eventLine-book-value")}).contents[0]
 		#print "Game time: ", self.game_time
 
-		team_names = game_html.findAll("span", {"class": "team-name"}) 
-		self.away_team = translate_name(team_names[0].contents[0].contents[0],self.league)
+		team_names = game_html.findAll("span", {"class": "team-name"})
+		self.away_team = translate_name(strip_text(team_names[0].contents[0].contents[0]),self.league)
 		#print "Away team: ", self.away_team
-		self.home_team = translate_name(team_names[1].contents[0].contents[0],self.league)
+		self.home_team = translate_name(strip_text(team_names[1].contents[0].contents[0]),self.league)
 		#print "Home team: ", self.home_team
-
 		# Make sure SBR didn't stick a funny (i.e. all-star) game into schedule
 		if self.home_team == "unknown" or self.away_team == "unknown":
 			print "Unknown team on date: ", self.game_date
@@ -76,7 +75,7 @@ class GameParser():
 			bookCount += 1
 			# For BPL for now ignore anything that isn't pinnacle
 			if self.league in ["BPL","FRA"] and not self.books[bookCount] in ['Pinnacle','Pinnacle Sports']: continue
-			if self.league in ["NHL","NBA"] and not self.books[bookCount] in ['5Dimes','Pinnacle Sports','bet365','SportsInteraction','Bodog']: continue
+			if self.league in ["NHL","NBA","MLB"] and not self.books[bookCount] in ['5Dimes','Pinnacle Sports','bet365','SportsInteraction','Bodog']: continue
 			if self.books[bookCount] in ['betcris', 'BetCris']: continue
 			# Click on odds to show line history
 			try:
@@ -141,6 +140,11 @@ class GameParser():
 			for aLine,hLine in zip(self.away_lines[bookCount],self.home_lines[bookCount]):
 				self.draw_lines[bookCount].append(float(1./(1.+self.margin-1./aLine-1./hLine)))
 
+def strip_text(text):
+	stripped_text = text.strip()
+	stripped_text = stripped_text.rstrip('-')
+	stripped_text = stripped_text.rstrip()
+	return stripped_text
 
 def translate_name(long_form, league):
 	for short_form in config["short_names"][league]:
